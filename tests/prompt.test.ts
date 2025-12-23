@@ -289,4 +289,275 @@ describe('groupedCheckbox', () => {
             group2: ['3'],
         })
     })
+
+    describe('filtered selection controls', () => {
+        it('should toggle only filtered items in group with Shift+A', async () => {
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [
+                            { value: 'apple', name: 'Apple' },
+                            { value: 'apricot', name: 'Apricot' },
+                            { value: 'banana', name: 'Banana' },
+                        ],
+                    },
+                ],
+            })
+
+            // Filter to show only 'ap' items (Apple, Apricot)
+            events.type('ap')
+
+            // Shift+A to select all filtered items in group
+            events.keypress({ name: 'a', shift: true })
+            events.keypress('enter')
+
+            // Only Apple and Apricot should be selected, not Banana
+            await expect(answer).resolves.toEqual({
+                fruits: ['apple', 'apricot'],
+            })
+        })
+
+        it('should invert only filtered items in group with Shift+I', async () => {
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [
+                            { value: 'apple', name: 'Apple', checked: true },
+                            { value: 'apricot', name: 'Apricot', checked: false },
+                            { value: 'banana', name: 'Banana', checked: true },
+                        ],
+                    },
+                ],
+            })
+
+            // Filter to show only 'ap' items (Apple, Apricot)
+            events.type('ap')
+
+            // Shift+I to invert filtered items in group
+            events.keypress({ name: 'i', shift: true })
+            events.keypress('enter')
+
+            // Apple: was checked, now unchecked
+            // Apricot: was unchecked, now checked
+            // Banana: was checked, stays checked (not filtered)
+            await expect(answer).resolves.toEqual({
+                fruits: ['apricot', 'banana'],
+            })
+        })
+
+        it('should toggle only filtered items globally with Ctrl+A', async () => {
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [
+                            { value: 'apple', name: 'Apple' },
+                            { value: 'cherry', name: 'Cherry' },
+                        ],
+                    },
+                    {
+                        key: 'vegetables',
+                        label: 'Vegetables',
+                        choices: [
+                            { value: 'spinach', name: 'Spinach' },
+                            { value: 'corn', name: 'Corn' },
+                        ],
+                    },
+                ],
+            })
+
+            // Filter to show only items containing 'ch' (Cherry, Spinach)
+            events.type('ch')
+
+            // Ctrl+A to select all filtered items
+            events.keypress({ name: 'a', ctrl: true })
+            events.keypress('enter')
+
+            // Cherry and Spinach contain 'ch', Apple and Corn do not
+            await expect(answer).resolves.toEqual({
+                fruits: ['cherry'],
+                vegetables: ['spinach'],
+            })
+        })
+
+        it('should invert only filtered items globally with Ctrl+I', async () => {
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [
+                            { value: 'apple', name: 'Apple', checked: true },
+                            { value: 'cherry', name: 'Cherry', checked: false },
+                        ],
+                    },
+                    {
+                        key: 'vegetables',
+                        label: 'Vegetables',
+                        choices: [
+                            { value: 'spinach', name: 'Spinach', checked: true },
+                            { value: 'corn', name: 'Corn', checked: true },
+                        ],
+                    },
+                ],
+            })
+
+            // Filter to show only items containing 'ch' (Cherry, Spinach)
+            events.type('ch')
+
+            // Ctrl+I to invert all filtered items
+            events.keypress({ name: 'i', ctrl: true })
+            events.keypress('enter')
+
+            // Apple: was checked, stays checked (not filtered)
+            // Cherry: was unchecked, now checked
+            // Spinach: was checked, now unchecked
+            // Corn: was checked, stays checked (not filtered)
+            await expect(answer).resolves.toEqual({
+                fruits: ['apple', 'cherry'],
+                vegetables: ['corn'],
+            })
+        })
+
+        it('should preserve filtered selection after clearing search', async () => {
+            const { answer, events, getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [
+                            { value: 'apple', name: 'Apple' },
+                            { value: 'banana', name: 'Banana' },
+                            { value: 'cherry', name: 'Cherry' },
+                        ],
+                    },
+                ],
+            })
+
+            // Filter and select
+            events.type('ap')
+            events.keypress('space') // Select Apple
+
+            // Clear search with Escape
+            events.keypress('escape')
+
+            // All items should be visible again
+            expect(getScreen()).toContain('Apple')
+            expect(getScreen()).toContain('Banana')
+            expect(getScreen()).toContain('Cherry')
+
+            events.keypress('enter')
+
+            // Apple should still be selected
+            await expect(answer).resolves.toEqual({
+                fruits: ['apple'],
+            })
+        })
+    })
+
+    describe('Tab navigation', () => {
+        it('should jump between groups with Tab', async () => {
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [{ value: '1' }, { value: '2' }],
+                    },
+                    {
+                        key: 'group2',
+                        label: 'Group 2',
+                        choices: [{ value: '3' }, { value: '4' }],
+                    },
+                ],
+            })
+
+            // Start at first item in group 1
+            events.keypress('space') // Select '1'
+            events.keypress('tab') // Jump to group 2
+            events.keypress('space') // Select '3'
+            events.keypress('enter')
+
+            await expect(answer).resolves.toEqual({
+                group1: ['1'],
+                group2: ['3'],
+            })
+        })
+
+        it('should jump between groups with Shift+Tab', async () => {
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [{ value: '1' }],
+                    },
+                    {
+                        key: 'group2',
+                        label: 'Group 2',
+                        choices: [{ value: '2' }],
+                    },
+                ],
+            })
+
+            events.keypress('tab') // Jump to group 2
+            events.keypress('space') // Select '2'
+            events.keypress({ name: 'tab', shift: true }) // Jump back to group 1
+            events.keypress('space') // Select '1'
+            events.keypress('enter')
+
+            await expect(answer).resolves.toEqual({
+                group1: ['1'],
+                group2: ['2'],
+            })
+        })
+
+        it('should Tab navigate in searchable mode without typing tab', async () => {
+            const { answer, events, getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [{ value: 'apple', name: 'Apple' }],
+                    },
+                    {
+                        key: 'vegetables',
+                        label: 'Vegetables',
+                        choices: [{ value: 'carrot', name: 'Carrot' }],
+                    },
+                ],
+            })
+
+            events.keypress('tab') // Should jump to vegetables, not type 'tab'
+            events.keypress('space') // Select carrot
+            events.keypress('enter')
+
+            // Search should be empty (tab wasn't typed)
+            expect(getScreen()).not.toContain('[tab]')
+
+            await expect(answer).resolves.toEqual({
+                fruits: [],
+                vegetables: ['carrot'],
+            })
+        })
+    })
 })
