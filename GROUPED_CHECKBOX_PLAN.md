@@ -455,7 +455,7 @@ export default createPrompt<GroupedSelections<Value>, GroupedCheckboxConfig<Valu
           : theme.icon.unchecked
         const cursor = isActive ? theme.icon.cursor : ' '
         const name = item.disabled
-          ? theme.style.disabledChoice(item.name)
+          ? theme.style.disabledChoice(item.name)Ø
           : item.name
 
         return `${header}${cursor} ${checkbox} ${name}`

@@ -24,6 +24,7 @@
     "scripts": {
         "build": "tsup",
         "dev": "tsup --watch",
+        "demo": "tsx demo/index.ts",
         "test": "vitest",
         "test:once": "vitest run",
         "typecheck": "tsc --noEmit",
