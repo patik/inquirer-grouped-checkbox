@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env tsx
 
 import groupedCheckbox from '../src/index.js'
 
