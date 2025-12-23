@@ -264,4 +264,4 @@ const selected: GroupedSelections<FruitOrVegetable> = await groupedCheckbox({
 
 ## License
 
-MIT
+See `LICENSE` file

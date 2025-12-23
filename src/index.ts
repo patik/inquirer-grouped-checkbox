@@ -27,12 +27,8 @@ import {
     findNextSelectableIndex,
     getCurrentGroup,
     getGroupStats,
-    invertAll,
-    invertGroup,
     isSelectableItem,
     normalizeGroups,
-    toggleAll,
-    toggleGroup,
 } from './utils.js'
 
 interface ExtendedKey extends KeypressEvent {
@@ -72,6 +68,9 @@ const groupedCheckbox = createPrompt(
 
         const searchRef = useRef(searchQuery)
         searchRef.current = searchQuery
+
+        const filteredChoicesRef = useRef(filteredChoices)
+        filteredChoicesRef.current = filteredChoices
 
         const currentGroup = useMemo(() => getCurrentGroup(cursorIndex, filteredGroups), [cursorIndex, filteredGroups])
 
@@ -161,39 +160,95 @@ const groupedCheckbox = createPrompt(
                     return
                 }
 
-                // Alphanumeric input (except when Ctrl is held for shortcuts)
-                if (key.sequence && !key.ctrl && /^[a-zA-Z0-9\-_./\s]$/.test(key.sequence)) {
+                // Alphanumeric input (except when Ctrl/Shift is held for shortcuts, or Tab)
+                if (
+                    key.sequence &&
+                    !key.ctrl &&
+                    !key.shift &&
+                    !isTabKey(key) &&
+                    /^[a-zA-Z0-9\-_./\s]$/.test(key.sequence)
+                ) {
                     setSearchQuery(searchRef.current + key.sequence)
                     setCursorIndex(0)
                     return
                 }
             }
 
-            // Global toggle all: Ctrl+A (or 'a' when not searchable)
+            // Global toggle all: Ctrl+A (or 'a' when not searchable) - operates on filtered/visible choices only
             if ((key.name === 'a' && key.ctrl) || (key.name === 'a' && !key.shift && !config.searchable)) {
-                const allChecked = choicesRef.current.filter((c) => !c.disabled).every((c) => c.checked)
-                setChoices(toggleAll(choicesRef.current, !allChecked))
+                const visibleChoices = filteredChoicesRef.current.filter(
+                    (c): c is NormalizedChoice<Value> => !Separator.isSeparator(c) && !c.disabled,
+                )
+                const allVisibleChecked = visibleChoices.every((c) => c.checked)
+                const visibleValues = new Set(visibleChoices.map((c) => c.value))
+                setChoices(
+                    choicesRef.current.map((choice) => {
+                        if (!choice.disabled && visibleValues.has(choice.value)) {
+                            return { ...choice, checked: !allVisibleChecked }
+                        }
+                        return choice
+                    }),
+                )
                 return
             }
 
-            // Global invert: Ctrl+I (or 'i' when not searchable)
+            // Global invert: Ctrl+I (or 'i' when not searchable) - operates on filtered/visible choices only
             if ((key.name === 'i' && key.ctrl) || (key.name === 'i' && !key.shift && !config.searchable)) {
-                setChoices(invertAll(choicesRef.current))
+                const visibleChoices = filteredChoicesRef.current.filter(
+                    (c): c is NormalizedChoice<Value> => !Separator.isSeparator(c) && !c.disabled,
+                )
+                const visibleValues = new Set(visibleChoices.map((c) => c.value))
+                setChoices(
+                    choicesRef.current.map((choice) => {
+                        if (!choice.disabled && visibleValues.has(choice.value)) {
+                            return { ...choice, checked: !choice.checked }
+                        }
+                        return choice
+                    }),
+                )
                 return
             }
 
-            // Per-group toggle: 'A' (Shift+A)
+            // Per-group toggle: 'A' (Shift+A) - operates on filtered/visible choices only
             if (key.name === 'a' && key.shift && currentGroupRef.current) {
                 const group = currentGroupRef.current
-                const groupChoices = choicesRef.current.filter((c) => c.groupKey === group.key && !c.disabled)
-                const allInGroupChecked = groupChoices.every((c) => c.checked)
-                setChoices(toggleGroup(choicesRef.current, group, !allInGroupChecked))
+                // Get visible choices in this group (filtered by search)
+                const visibleGroupChoices = filteredChoicesRef.current.filter(
+                    (c): c is NormalizedChoice<Value> =>
+                        !Separator.isSeparator(c) && c.groupKey === group.key && !c.disabled,
+                )
+                const allVisibleChecked = visibleGroupChoices.every((c) => c.checked)
+                const visibleValues = new Set(visibleGroupChoices.map((c) => c.value))
+                // Toggle only the visible choices
+                setChoices(
+                    choicesRef.current.map((choice) => {
+                        if (choice.groupKey === group.key && !choice.disabled && visibleValues.has(choice.value)) {
+                            return { ...choice, checked: !allVisibleChecked }
+                        }
+                        return choice
+                    }),
+                )
                 return
             }
 
-            // Per-group invert: 'I' (Shift+I)
+            // Per-group invert: 'I' (Shift+I) - operates on filtered/visible choices only
             if (key.name === 'i' && key.shift && currentGroupRef.current) {
-                setChoices(invertGroup(choicesRef.current, currentGroupRef.current))
+                const group = currentGroupRef.current
+                // Get visible choices in this group (filtered by search)
+                const visibleGroupChoices = filteredChoicesRef.current.filter(
+                    (c): c is NormalizedChoice<Value> =>
+                        !Separator.isSeparator(c) && c.groupKey === group.key && !c.disabled,
+                )
+                const visibleValues = new Set(visibleGroupChoices.map((c) => c.value))
+                // Invert only the visible choices
+                setChoices(
+                    choicesRef.current.map((choice) => {
+                        if (choice.groupKey === group.key && !choice.disabled && visibleValues.has(choice.value)) {
+                            return { ...choice, checked: !choice.checked }
+                        }
+                        return choice
+                    }),
+                )
                 return
             }
 

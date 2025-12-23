@@ -64,7 +64,12 @@ export function filterBySearch<Value>(
         const matchingChoices: NormalizedChoice<Value>[] = []
         const startIndex = flatIndex
 
-        for (const choice of group.choices) {
+        // Use flatChoices (current state) filtered by groupKey, not group.choices (stale)
+        const currentGroupChoices = flatChoices.filter(
+            (c): c is NormalizedChoice<Value> => !Separator.isSeparator(c) && c.groupKey === group.key,
+        )
+
+        for (const choice of currentGroupChoices) {
             if (choice.name.toLowerCase().includes(lowerQuery)) {
                 matchingChoices.push(choice)
                 filteredChoices.push(choice)
