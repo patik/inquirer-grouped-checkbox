@@ -28,6 +28,11 @@
         "test": "vitest",
         "test:once": "vitest run",
         "typecheck": "tsc --noEmit",
+        "lint": "pnpm run typecheck && eslint . --fix && pnpm run format",
+        "format": "prettier . --list-different --write",
+        "check-format": "prettier . --list-different",
+        "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
+        "ci": "pnpm build && pnpm check-exports && pnpm test:once",
         "prepublishOnly": "pnpm build"
     },
     "keywords": [
@@ -52,6 +57,7 @@
         "@inquirer/figures": "^1.0.0"
     },
     "devDependencies": {
+        "@arethetypeswrong/cli": "^0.18.2",
         "@eslint/js": "^9.39.2",
         "@inquirer/testing": "^2.0.0",
         "@inquirer/type": "^3.0.0",
