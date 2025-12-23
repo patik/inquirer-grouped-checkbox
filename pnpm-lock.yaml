@@ -14,9 +14,6 @@ importers:
       '@inquirer/figures':
         specifier: ^1.0.0
         version: 1.0.15
-      yoctocolors-cjs:
-        specifier: ^2.0.0
-        version: 2.1.3
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.2
