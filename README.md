@@ -20,11 +20,7 @@ A searchable, grouped checkbox prompt for [Inquirer.js](https://github.com/SBoud
 ## Installation
 
 ```bash
-npm install inquirer-grouped-checkbox @inquirer/core
-# or
-pnpm add inquirer-grouped-checkbox @inquirer/core
-# or
-yarn add inquirer-grouped-checkbox @inquirer/core
+pnpm add inquirer-grouped-checkbox
 ```
 
 ## Usage
