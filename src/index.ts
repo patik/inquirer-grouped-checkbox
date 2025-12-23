@@ -16,6 +16,7 @@ import {
     type KeypressEvent,
     type Status,
 } from '@inquirer/core'
+import { Context } from '@inquirer/type'
 import { styleText } from 'node:util'
 import { defaultTheme, type GroupedCheckboxTheme } from './theme.js'
 import type { GroupedCheckboxConfig, GroupedSelections, Item, NormalizedChoice } from './types.js'
@@ -36,7 +37,10 @@ interface ExtendedKey extends KeypressEvent {
     sequence?: string
 }
 
-const groupedCheckbox = createPrompt(
+const groupedCheckbox: <Value>(
+    config: GroupedCheckboxConfig<Value>,
+    done?: Context,
+) => Promise<GroupedSelections<Value>> = createPrompt(
     <Value>(config: GroupedCheckboxConfig<Value>, done: (value: GroupedSelections<Value>) => void) => {
         const { normalizedGroups: initialGroups, flatChoices: initialChoices } = useMemo(
             () => normalizeGroups(config.groups),
