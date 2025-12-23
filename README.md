@@ -2,6 +2,8 @@
 
 A searchable, grouped checkbox prompt for [Inquirer.js](https://github.com/SBoudrias/Inquirer.js) with per-group and global selection controls.
 
+![Demo gif](https://github.com/user-attachments/assets/d4f7fd13-aa3d-4bcd-ab8d-fca7bd54bbef)
+
 ![npm version](https://img.shields.io/npm/v/inquirer-grouped-checkbox)
 ![license](https://img.shields.io/npm/l/inquirer-grouped-checkbox)
 
