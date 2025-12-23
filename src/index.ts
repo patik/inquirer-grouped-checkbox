@@ -366,3 +366,13 @@ const groupedCheckbox: <Value>(
 )
 
 export default groupedCheckbox
+export type { GroupedCheckboxTheme } from './theme.js'
+export type {
+    Choice,
+    Group,
+    GroupedCheckboxConfig,
+    GroupedSelections,
+    NormalizedChoice,
+    NormalizedGroup,
+} from './types.js'
+export { Separator }
