@@ -263,7 +263,7 @@ export function normalizeGroups<Value>(groups: ReadonlyArray<Group<Value>>): {
 export function filterBySearch<Value>(
     flatChoices: Array<NormalizedChoice<Value> | Separator>,
     groups: NormalizedGroup<Value>[],
-    query: string
+    query: string,
 ): {
     filteredChoices: Array<NormalizedChoice<Value> | Separator>
     filteredGroups: NormalizedGroup<Value>[]
@@ -274,7 +274,7 @@ export function filterBySearch<Value>(
  */
 export function getCurrentGroup<Value>(
     cursorIndex: number,
-    groups: NormalizedGroup<Value>[]
+    groups: NormalizedGroup<Value>[],
 ): NormalizedGroup<Value> | null
 
 /**
@@ -288,7 +288,7 @@ export function getSelectableInGroup<Value>(group: NormalizedGroup<Value>): Norm
 export function toggleGroup<Value>(
     choices: NormalizedChoice<Value>[],
     group: NormalizedGroup<Value>,
-    checked: boolean
+    checked: boolean,
 ): NormalizedChoice<Value>[]
 
 /**
@@ -296,7 +296,7 @@ export function toggleGroup<Value>(
  */
 export function invertGroup<Value>(
     choices: NormalizedChoice<Value>[],
-    group: NormalizedGroup<Value>
+    group: NormalizedGroup<Value>,
 ): NormalizedChoice<Value>[]
 ```
 
@@ -511,10 +511,10 @@ Allow groups to be collapsed/expanded with a keybinding.
 
 #### Task 4.1: Search state management
 
--   Track `searchQuery` state
--   Filter choices in real-time
--   Preserve selection state when filtering (selected items not matching search remain selected but hidden)
--   Show "No matches" message when search yields no results
+- Track `searchQuery` state
+- Filter choices in real-time
+- Preserve selection state when filtering (selected items not matching search remain selected but hidden)
+- Show "No matches" message when search yields no results
 
 #### Task 4.2: Search UI
 
@@ -532,10 +532,10 @@ Allow groups to be collapsed/expanded with a keybinding.
 
 #### Task 5.1: Unit tests for utilities
 
--   `normalizeGroups()` - various input formats
--   `filterBySearch()` - search matching, empty results
--   `getCurrentGroup()` - cursor position to group mapping
--   `toggleGroup()` / `invertGroup()` - selection logic
+- `normalizeGroups()` - various input formats
+- `filterBySearch()` - search matching, empty results
+- `getCurrentGroup()` - cursor position to group mapping
+- `toggleGroup()` / `invertGroup()` - selection logic
 
 #### Task 5.2: Integration tests
 
@@ -572,12 +572,12 @@ test('selects items across groups', async () => {
 
 #### Task 6.1: README.md
 
--   Installation
--   Basic usage
--   API reference
--   Keyboard shortcuts
--   Theming
--   Examples
+- Installation
+- Basic usage
+- API reference
+- Keyboard shortcuts
+- Theming
+- Examples
 
 #### Task 6.2: TypeScript declarations
 
@@ -629,6 +629,6 @@ inquirer-grouped-checkbox/
 
 ## References
 
--   [@inquirer/checkbox source](https://github.com/SBoudrias/Inquirer.js/blob/main/packages/checkbox/src/index.ts)
--   [@inquirer/core documentation](https://github.com/SBoudrias/Inquirer.js/blob/main/packages/core/README.md)
--   [inquirer-checkbox-plus-plus](https://github.com/behnamazimi/inquirer-checkbox-plus-plus)
+- [@inquirer/checkbox source](https://github.com/SBoudrias/Inquirer.js/blob/main/packages/checkbox/src/index.ts)
+- [@inquirer/core documentation](https://github.com/SBoudrias/Inquirer.js/blob/main/packages/core/README.md)
+- [inquirer-checkbox-plus-plus](https://github.com/behnamazimi/inquirer-checkbox-plus-plus)

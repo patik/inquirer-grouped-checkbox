@@ -1,23 +1,66 @@
 {
     "name": "inquirer-grouped-checkbox",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 0"
+    "version": "0.1.0",
+    "description": "A searchable, grouped checkbox prompt for Inquirer.js",
+    "type": "module",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+            }
+        }
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "test": "vitest",
+        "test:once": "vitest run",
+        "typecheck": "tsc --noEmit",
+        "prepublishOnly": "pnpm build"
+    },
+    "keywords": [
+        "inquirer",
+        "checkbox",
+        "grouped",
+        "prompt",
+        "cli"
+    ],
+    "author": "Craig Patik",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/patik/inquirer-grouped-checkbox.git"
+    },
+    "license": "MIT",
     "packageManager": "pnpm@10.24.0",
+    "peerDependencies": {
+        "@inquirer/core": ">=10.0.0"
+    },
+    "dependencies": {
+        "@inquirer/core": "^10.0.0",
+        "@inquirer/figures": "^1.0.0"
+    },
     "devDependencies": {
         "@eslint/js": "^9.39.2",
+        "@inquirer/testing": "^2.0.0",
+        "@inquirer/type": "^3.0.0",
         "@types/node": "^25.0.3",
         "@vitest/ui": "^4.0.16",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
         "prettier": "^3.7.4",
+        "tsup": "^8.0.0",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.50.1",
