@@ -1,6 +1,6 @@
 {
     "name": "inquirer-grouped-checkbox",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "A searchable, grouped checkbox prompt for Inquirer.js",
     "type": "module",
     "main": "./dist/index.cjs",
@@ -49,10 +49,8 @@
     },
     "license": "MIT",
     "packageManager": "pnpm@10.24.0",
-    "peerDependencies": {
-        "@inquirer/core": "^11.1.0"
-    },
     "dependencies": {
+        "@inquirer/core": "^11.1.0",
         "@inquirer/figures": "^2.0.2"
     },
     "devDependencies": {
