@@ -1,6 +1,7 @@
 import { render } from '@inquirer/testing'
 import { describe, expect, it } from 'vitest'
-import groupedCheckbox, { GroupedSelections } from '../src/index.js'
+import groupedCheckbox from '../src/index.js'
+import type { GroupedSelections } from '../src/types.js'
 
 describe('groupedCheckbox', () => {
     it('should render groups with choices', async () => {
