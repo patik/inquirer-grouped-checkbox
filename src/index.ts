@@ -33,7 +33,7 @@ import {
 } from './utils.js'
 
 interface ExtendedKey extends KeypressEvent {
-    shift?: boolean
+    shift: boolean
     sequence?: string
 }
 

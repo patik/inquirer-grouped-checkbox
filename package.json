@@ -50,7 +50,7 @@
     "license": "MIT",
     "packageManager": "pnpm@10.24.0",
     "peerDependencies": {
-        "@inquirer/core": ">=10.0.0"
+        "@inquirer/core": "^11.1.0"
     },
     "dependencies": {
         "@inquirer/figures": "^2.0.2"
