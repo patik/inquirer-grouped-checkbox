@@ -84,6 +84,55 @@ describe('groupedCheckbox', () => {
         })
     })
 
+    it('should toggle partially selected group to fully selected', async () => {
+        const { answer, events } = await render(groupedCheckbox, {
+            message: 'Select items',
+            groups: [
+                {
+                    key: 'group1',
+                    label: 'Group 1',
+                    choices: [
+                        { value: '1', name: 'Item 1', checked: true },
+                        { value: '2', name: 'Item 2', checked: false },
+                        { value: '3', name: 'Item 3', checked: false },
+                    ],
+                },
+            ],
+        })
+
+        // Cursor starts on group header, toggle should select all since not all are checked
+        events.keypress('space')
+        events.keypress('enter')
+
+        await expect(answer).resolves.toEqual({
+            group1: ['1', '2', '3'],
+        })
+    })
+
+    it('should do nothing when toggling group header with all disabled items', async () => {
+        const { answer, events } = await render(groupedCheckbox, {
+            message: 'Select items',
+            groups: [
+                {
+                    key: 'group1',
+                    label: 'Group 1',
+                    choices: [
+                        { value: '1', name: 'Item 1', disabled: true },
+                        { value: '2', name: 'Item 2', disabled: true },
+                    ],
+                },
+            ],
+        })
+
+        // Cursor starts on group header, but all items are disabled so toggle should do nothing
+        events.keypress('space')
+        events.keypress('enter')
+
+        await expect(answer).resolves.toEqual({
+            group1: [],
+        })
+    })
+
     it('should navigate with arrow keys', async () => {
         const { answer, events } = await render(groupedCheckbox, {
             message: 'Select items',
@@ -351,6 +400,45 @@ describe('groupedCheckbox', () => {
             // Only Apple and Apricot should be selected, not Banana
             await expect(answer).resolves.toEqual({
                 fruits: ['apple', 'apricot'],
+            })
+        })
+
+        it('should do nothing when toggling group header with no filtered matches', async () => {
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [
+                            { value: 'apple', name: 'Apple' },
+                            { value: 'banana', name: 'Banana' },
+                        ],
+                    },
+                    {
+                        key: 'vegetables',
+                        label: 'Vegetables',
+                        choices: [
+                            { value: 'carrot', name: 'Carrot' },
+                            { value: 'spinach', name: 'Spinach' },
+                        ],
+                    },
+                ],
+            })
+
+            // Filter to show only items containing 'carr' (only Carrot matches)
+            events.type('carr')
+
+            // Cursor is on vegetables group header (fruits group is hidden)
+            // Toggling should select the filtered items
+            events.keypress('space')
+            events.keypress('enter')
+
+            // Only Carrot should be selected
+            await expect(answer).resolves.toEqual({
+                fruits: [],
+                vegetables: ['carrot'],
             })
         })
 

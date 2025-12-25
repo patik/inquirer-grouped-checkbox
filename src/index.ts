@@ -154,6 +154,10 @@ const groupedCheckbox: <Value>(
                                 c.groupKey === group.key &&
                                 !c.disabled,
                         )
+                        // If there are no visible, enabled choices in this group, do nothing
+                        if (visibleGroupChoices.length === 0) {
+                            return
+                        }
                         const allVisibleChecked = visibleGroupChoices.every((c) => c.checked)
                         const visibleValues = new Set(visibleGroupChoices.map((c) => c.value))
                         // Toggle only the visible choices
