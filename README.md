@@ -10,7 +10,7 @@ A searchable, grouped checkbox prompt for [Inquirer.js](https://github.com/SBoud
 ## Features
 
 - **Grouped display** - Organize choices under labeled headers with optional icons
-- **Per-group controls** - Select all/none within a single group (Shift+A/Shift+I)
+- **Selectable group headers** - Toggle all items in a group by selecting the group header
 - **Global controls** - Select all/none across all groups (a/i or Ctrl+A/Ctrl+I when searchable)
 - **Real-time search** - Filter choices across all groups simultaneously
 - **Keyboard navigation** - Navigate between items and jump between groups with Tab
@@ -100,23 +100,23 @@ Returns a `Promise` that resolves to an object with group keys mapping to arrays
 
 ## Keyboard Shortcuts
 
-| Key         | Action                           |
-| ----------- | -------------------------------- |
-| `↑` / `↓`   | Move cursor up/down              |
-| `Space`     | Toggle current item              |
-| `Enter`     | Submit selection                 |
-| `Tab`       | Jump to next group               |
-| `Shift+Tab` | Jump to previous group           |
-| `a`         | Toggle all (when not searchable) |
-| `i`         | Invert all (when not searchable) |
-| `Ctrl+A`    | Toggle all (when searchable)     |
-| `Ctrl+I`    | Invert all (when searchable)     |
-| `Shift+A`   | Toggle all in current group      |
-| `Shift+I`   | Invert all in current group      |
-| `Escape`    | Clear search query               |
-| `Backspace` | Delete last search character     |
+| Key         | Action                                    |
+| ----------- | ----------------------------------------- |
+| `↑` / `↓`   | Move cursor up/down                       |
+| `Space`     | Toggle current item or all items in group |
+| `Enter`     | Submit selection                          |
+| `Tab`       | Jump to next group                        |
+| `Shift+Tab` | Jump to previous group                    |
+| `a`         | Toggle all visible (when not searchable)  |
+| `i`         | Invert all visible (when not searchable)  |
+| `Ctrl+A`    | Toggle all visible (when searchable)      |
+| `Ctrl+I`    | Invert all visible (when searchable)      |
+| `Escape`    | Clear search query                        |
+| `Backspace` | Delete last search character              |
 
 When `searchable: true`, typing alphanumeric characters filters the choices in real-time.
+
+Group headers are navigable and display a checkbox. Pressing `Space` on a group header toggles all non-disabled items within that group. The header shows the selection count (e.g., `(2/5)`) and its checkbox reflects whether all items in the group are selected.
 
 ## Examples
 

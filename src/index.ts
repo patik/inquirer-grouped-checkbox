@@ -20,7 +20,7 @@ import type { Context } from '@inquirer/type'
 import { styleText } from 'node:util'
 import { defaultTheme, type GroupedCheckboxTheme } from './theme.js'
 import type { GroupedCheckboxConfig, GroupedSelections, Item, NormalizedChoice } from './types.js'
-import { Separator } from './types.js'
+import { isGroupHeader, Separator } from './types.js'
 import {
     buildSelections,
     filterBySearch,
@@ -49,7 +49,9 @@ const groupedCheckbox: <Value>(
 
         const [status, setStatus] = useState<Status>('idle')
         const [choices, setChoices] = useState<NormalizedChoice<Value>[]>(
-            initialChoices.filter((item): item is NormalizedChoice<Value> => !Separator.isSeparator(item)),
+            initialChoices.filter(
+                (item): item is NormalizedChoice<Value> => !Separator.isSeparator(item) && !isGroupHeader(item),
+            ),
         )
         const [searchQuery, setSearchQuery] = useState('')
         const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
@@ -138,7 +140,45 @@ const groupedCheckbox: <Value>(
 
             if (isSpaceKey(key)) {
                 const currentItem = filteredChoices[cursorRef.current]
-                if (currentItem && isSelectableItem(currentItem)) {
+                if (!currentItem) return
+
+                // Handle group header toggle
+                if (isGroupHeader(currentItem)) {
+                    const group = filteredGroups.find((g) => g.key === currentItem.groupKey)
+                    if (group) {
+                        // Get visible choices in this group (filtered by search)
+                        const visibleGroupChoices = filteredChoicesRef.current.filter(
+                            (c): c is NormalizedChoice<Value> =>
+                                !Separator.isSeparator(c) &&
+                                !isGroupHeader(c) &&
+                                c.groupKey === group.key &&
+                                !c.disabled,
+                        )
+                        // If there are no visible, enabled choices in this group, do nothing
+                        if (visibleGroupChoices.length === 0) {
+                            return
+                        }
+                        const allVisibleChecked = visibleGroupChoices.every((c) => c.checked)
+                        const visibleValues = new Set(visibleGroupChoices.map((c) => c.value))
+                        // Toggle only the visible choices
+                        setChoices(
+                            choicesRef.current.map((choice) => {
+                                if (
+                                    choice.groupKey === group.key &&
+                                    !choice.disabled &&
+                                    visibleValues.has(choice.value)
+                                ) {
+                                    return { ...choice, checked: !allVisibleChecked }
+                                }
+                                return choice
+                            }),
+                        )
+                    }
+                    return
+                }
+
+                // Handle regular choice toggle
+                if (isSelectableItem(currentItem)) {
                     const newChoices = choicesRef.current.map((choice) => {
                         if (choice.value === currentItem.value && choice.groupKey === currentItem.groupKey) {
                             return { ...choice, checked: !choice.checked }
@@ -181,7 +221,7 @@ const groupedCheckbox: <Value>(
             // Global toggle all: Ctrl+A (or 'a' when not searchable) - operates on filtered/visible choices only
             if ((key.name === 'a' && key.ctrl) || (key.name === 'a' && !key.shift && !config.searchable)) {
                 const visibleChoices = filteredChoicesRef.current.filter(
-                    (c): c is NormalizedChoice<Value> => !Separator.isSeparator(c) && !c.disabled,
+                    (c): c is NormalizedChoice<Value> => !Separator.isSeparator(c) && !isGroupHeader(c) && !c.disabled,
                 )
                 const allVisibleChecked = visibleChoices.every((c) => c.checked)
                 const visibleValues = new Set(visibleChoices.map((c) => c.value))
@@ -199,55 +239,12 @@ const groupedCheckbox: <Value>(
             // Global invert: Ctrl+I (or 'i' when not searchable) - operates on filtered/visible choices only
             if ((key.name === 'i' && key.ctrl) || (key.name === 'i' && !key.shift && !config.searchable)) {
                 const visibleChoices = filteredChoicesRef.current.filter(
-                    (c): c is NormalizedChoice<Value> => !Separator.isSeparator(c) && !c.disabled,
+                    (c): c is NormalizedChoice<Value> => !Separator.isSeparator(c) && !isGroupHeader(c) && !c.disabled,
                 )
                 const visibleValues = new Set(visibleChoices.map((c) => c.value))
                 setChoices(
                     choicesRef.current.map((choice) => {
                         if (!choice.disabled && visibleValues.has(choice.value)) {
-                            return { ...choice, checked: !choice.checked }
-                        }
-                        return choice
-                    }),
-                )
-                return
-            }
-
-            // Per-group toggle: 'A' (Shift+A) - operates on filtered/visible choices only
-            if (key.name === 'a' && key.shift && currentGroupRef.current) {
-                const group = currentGroupRef.current
-                // Get visible choices in this group (filtered by search)
-                const visibleGroupChoices = filteredChoicesRef.current.filter(
-                    (c): c is NormalizedChoice<Value> =>
-                        !Separator.isSeparator(c) && c.groupKey === group.key && !c.disabled,
-                )
-                const allVisibleChecked = visibleGroupChoices.every((c) => c.checked)
-                const visibleValues = new Set(visibleGroupChoices.map((c) => c.value))
-                // Toggle only the visible choices
-                setChoices(
-                    choicesRef.current.map((choice) => {
-                        if (choice.groupKey === group.key && !choice.disabled && visibleValues.has(choice.value)) {
-                            return { ...choice, checked: !allVisibleChecked }
-                        }
-                        return choice
-                    }),
-                )
-                return
-            }
-
-            // Per-group invert: 'I' (Shift+I) - operates on filtered/visible choices only
-            if (key.name === 'i' && key.shift && currentGroupRef.current) {
-                const group = currentGroupRef.current
-                // Get visible choices in this group (filtered by search)
-                const visibleGroupChoices = filteredChoicesRef.current.filter(
-                    (c): c is NormalizedChoice<Value> =>
-                        !Separator.isSeparator(c) && c.groupKey === group.key && !c.disabled,
-                )
-                const visibleValues = new Set(visibleGroupChoices.map((c) => c.value))
-                // Invert only the visible choices
-                setChoices(
-                    choicesRef.current.map((choice) => {
-                        if (choice.groupKey === group.key && !choice.disabled && visibleValues.has(choice.value)) {
                             return { ...choice, checked: !choice.checked }
                         }
                         return choice
@@ -287,18 +284,21 @@ const groupedCheckbox: <Value>(
             items: filteredChoices,
             active: cursorIndex,
             pageSize: config.pageSize ?? 15,
-            renderItem: ({ item, index, isActive }) => {
+            renderItem: ({ item, isActive }) => {
                 if (Separator.isSeparator(item)) {
                     return ` ${item.separator}`
                 }
 
-                // Check if this is the first item in a group (render header)
-                const group = filteredGroups.find((g) => g.startIndex === index)
-                let header = ''
-                if (group) {
-                    const stats = getGroupStats(group)
+                // Handle group header rendering
+                if (isGroupHeader(item)) {
+                    const group = filteredGroups.find((g) => g.key === item.groupKey)
+                    const stats = group ? getGroupStats(group) : { selected: 0, total: 0 }
+                    const allChecked = stats.total > 0 && stats.selected === stats.total
+                    const checkbox = allChecked ? theme.icon.checked : theme.icon.unchecked
+                    const cursor = isActive ? theme.icon.cursor : ' '
+                    const headerText = theme.style.groupHeader(item.label, item.icon)
                     const statsText = styleText('dim', ` (${stats.selected}/${stats.total})`)
-                    header = `\n${theme.style.groupHeader(group.label, group.icon)}${statsText}\n`
+                    return `${cursor} ${checkbox} ${headerText}${statsText}`
                 }
 
                 const checkbox = item.checked ? theme.icon.checked : theme.icon.unchecked
@@ -310,10 +310,10 @@ const groupedCheckbox: <Value>(
                       )
                     : color(item.name)
 
-                let line = `${header}${cursor} ${checkbox} ${name}`
+                let line = `  ${cursor} ${checkbox} ${name}`
 
                 if (item.description && isActive) {
-                    line += `\n   ${theme.style.description(item.description)}`
+                    line += `\n     ${theme.style.description(item.description)}`
                 }
 
                 return line
@@ -367,12 +367,13 @@ const groupedCheckbox: <Value>(
 
 export default groupedCheckbox
 export type { GroupedCheckboxTheme } from './theme.js'
+export { isGroupHeader, Separator } from './types.js'
 export type {
     Choice,
     Group,
     GroupedCheckboxConfig,
     GroupedSelections,
+    GroupHeader,
     NormalizedChoice,
     NormalizedGroup,
 } from './types.js'
-export { Separator }
