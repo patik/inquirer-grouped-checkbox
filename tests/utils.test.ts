@@ -165,6 +165,91 @@ describe('filterBySearch', () => {
         expect(filteredGroups[0]).toMatchObject({ startIndex: 0, endIndex: 1 })
         expect(filteredGroups[1]).toMatchObject({ startIndex: 2, endIndex: 2 })
     })
+
+    it('should use current checked state from flatChoices when no search query', () => {
+        const { normalizedGroups, flatChoices } = createTestData()
+
+        // Modify the checked state of some choices (simulating user interaction)
+        const modifiedChoices = flatChoices.map((choice) => {
+            if (!Separator.isSeparator(choice) && choice.value === 'apple') {
+                return { ...choice, checked: true }
+            }
+            if (!Separator.isSeparator(choice) && choice.value === 'carrot') {
+                return { ...choice, checked: true }
+            }
+            return choice
+        })
+
+        // Filter with no query
+        const { filteredGroups } = filterBySearch(modifiedChoices, normalizedGroups, '')
+
+        // Check that the groups have the updated checked state
+        const fruitsGroup = filteredGroups[0]
+        const appleChoice = fruitsGroup?.choices.find((c) => c.value === 'apple')
+        expect(appleChoice?.checked).toBe(true)
+
+        const vegetablesGroup = filteredGroups[1]
+        const carrotChoice = vegetablesGroup?.choices.find((c) => c.value === 'carrot')
+        expect(carrotChoice?.checked).toBe(true)
+
+        // Verify other choices remain unchecked
+        const bananaChoice = fruitsGroup?.choices.find((c) => c.value === 'banana')
+        expect(bananaChoice?.checked).toBe(false)
+    })
+
+    it('should use current checked state from flatChoices when filtering with query', () => {
+        const { normalizedGroups, flatChoices } = createTestData()
+
+        // Modify the checked state
+        const modifiedChoices = flatChoices.map((choice) => {
+            if (!Separator.isSeparator(choice) && choice.value === 'apple') {
+                return { ...choice, checked: true }
+            }
+            if (!Separator.isSeparator(choice) && choice.value === 'banana') {
+                return { ...choice, checked: true }
+            }
+            return choice
+        })
+
+        // Filter to show only items containing 'a'
+        const { filteredGroups } = filterBySearch(modifiedChoices, normalizedGroups, 'a')
+
+        // All filtered choices should have their current checked state
+        const fruitsGroup = filteredGroups[0]
+        const appleChoice = fruitsGroup?.choices.find((c) => c.value === 'apple')
+        expect(appleChoice?.checked).toBe(true)
+
+        const bananaChoice = fruitsGroup?.choices.find((c) => c.value === 'banana')
+        expect(bananaChoice?.checked).toBe(true)
+
+        const vegetablesGroup = filteredGroups[1]
+        const carrotChoice = vegetablesGroup?.choices.find((c) => c.value === 'carrot')
+        expect(carrotChoice?.checked).toBe(false) // Not checked in modified choices
+    })
+
+    it('should update group stats correctly after selection changes', () => {
+        const { normalizedGroups, flatChoices } = createTestData()
+
+        // Initially, nothing is selected
+        const { filteredGroups: initialGroups } = filterBySearch(flatChoices, normalizedGroups, '')
+        const initialStats = getGroupStats(initialGroups[0]!)
+        expect(initialStats.selected).toBe(0)
+        expect(initialStats.total).toBe(2) // Apple and Banana
+
+        // Select some items
+        const modifiedChoices = flatChoices.map((choice) => {
+            if (!Separator.isSeparator(choice) && choice.value === 'apple') {
+                return { ...choice, checked: true }
+            }
+            return choice
+        })
+
+        // Filter again with no query
+        const { filteredGroups: updatedGroups } = filterBySearch(modifiedChoices, normalizedGroups, '')
+        const updatedStats = getGroupStats(updatedGroups[0]!)
+        expect(updatedStats.selected).toBe(1) // Apple is now selected
+        expect(updatedStats.total).toBe(2) // Still 2 total
+    })
 })
 
 describe('getCurrentGroup', () => {

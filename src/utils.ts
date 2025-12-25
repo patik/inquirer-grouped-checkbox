@@ -51,10 +51,6 @@ export function filterBySearch<Value>(
     filteredChoices: Item<Value>[]
     filteredGroups: NormalizedGroup<Value>[]
 } {
-    if (!query) {
-        return { filteredChoices: flatChoices, filteredGroups: groups }
-    }
-
     const lowerQuery = query.toLowerCase()
     const filteredChoices: Item<Value>[] = []
     const filteredGroups: NormalizedGroup<Value>[] = []
@@ -70,7 +66,7 @@ export function filterBySearch<Value>(
         )
 
         for (const choice of currentGroupChoices) {
-            if (choice.name.toLowerCase().includes(lowerQuery)) {
+            if (!query || choice.name.toLowerCase().includes(lowerQuery)) {
                 matchingChoices.push(choice)
                 filteredChoices.push(choice)
                 flatIndex++
