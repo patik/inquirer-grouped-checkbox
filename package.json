@@ -40,7 +40,10 @@
         "checkbox",
         "grouped",
         "prompt",
-        "cli"
+        "cli",
+        "select",
+        "list",
+        "categorized"
     ],
     "author": "Craig Patik",
     "repository": {
