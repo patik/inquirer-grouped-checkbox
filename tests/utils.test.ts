@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Group, NormalizedChoice, NormalizedGroup } from '../src/types.js'
-import { Separator } from '../src/types.js'
+import { isGroupHeader, Separator } from '../src/types.js'
 import {
     buildSelections,
     filterBySearch,
@@ -17,7 +17,7 @@ import {
 } from '../src/utils.js'
 
 describe('normalizeGroups', () => {
-    it('should normalize groups and create flat choices', () => {
+    it('should normalize groups and create flat choices with group headers', () => {
         const groups: Group<string>[] = [
             {
                 key: 'group1',
@@ -38,27 +38,36 @@ describe('normalizeGroups', () => {
         const { normalizedGroups, flatChoices } = normalizeGroups(groups)
 
         expect(normalizedGroups).toHaveLength(2)
-        expect(flatChoices).toHaveLength(3)
+        // 2 group headers + 3 choices = 5 items
+        expect(flatChoices).toHaveLength(5)
 
-        // Check first group
+        // Check first group (header at index 0, choices at 1-2)
         expect(normalizedGroups[0]).toMatchObject({
             key: 'group1',
             label: 'Group 1',
             startIndex: 0,
-            endIndex: 1,
+            endIndex: 2,
         })
 
-        // Check second group
+        // Check second group (header at index 3, choice at 4)
         expect(normalizedGroups[1]).toMatchObject({
             key: 'group2',
             label: 'Group 2',
             icon: '🚀',
-            startIndex: 2,
-            endIndex: 2,
+            startIndex: 3,
+            endIndex: 4,
         })
 
-        // Check normalized choices
+        // Check group header at index 0
+        expect(isGroupHeader(flatChoices[0])).toBe(true)
         expect(flatChoices[0]).toMatchObject({
+            type: 'group-header',
+            groupKey: 'group1',
+            label: 'Group 1',
+        })
+
+        // Check normalized choices (after header)
+        expect(flatChoices[1]).toMatchObject({
             value: 'a',
             name: 'Choice A',
             groupKey: 'group1',
@@ -67,13 +76,21 @@ describe('normalizeGroups', () => {
             checked: false,
         })
 
-        expect(flatChoices[1]).toMatchObject({
+        expect(flatChoices[2]).toMatchObject({
             value: 'b',
             name: 'Choice B',
             checked: true,
         })
 
-        expect(flatChoices[2]).toMatchObject({
+        // Check second group header
+        expect(isGroupHeader(flatChoices[3])).toBe(true)
+        expect(flatChoices[3]).toMatchObject({
+            type: 'group-header',
+            groupKey: 'group2',
+            icon: '🚀',
+        })
+
+        expect(flatChoices[4]).toMatchObject({
             value: 'c',
             name: 'c', // Should use value as name when name is not provided
             groupKey: 'group2',
@@ -94,8 +111,10 @@ describe('normalizeGroups', () => {
 
         const { flatChoices } = normalizeGroups(groups)
 
-        expect(flatChoices[0]).toMatchObject({ disabled: true })
-        expect(flatChoices[1]).toMatchObject({ disabled: 'Not available' })
+        // Index 0 is group header, 1 and 2 are choices
+        expect(isGroupHeader(flatChoices[0])).toBe(true)
+        expect(flatChoices[1]).toMatchObject({ disabled: true })
+        expect(flatChoices[2]).toMatchObject({ disabled: 'Not available' })
     })
 })
 
@@ -122,11 +141,12 @@ describe('filterBySearch', () => {
         return normalizeGroups(groups)
     }
 
-    it('should return all choices when query is empty', () => {
+    it('should return all choices with group headers when query is empty', () => {
         const { normalizedGroups, flatChoices } = createTestData()
         const { filteredChoices, filteredGroups } = filterBySearch(flatChoices, normalizedGroups, '')
 
-        expect(filteredChoices).toHaveLength(4)
+        // 2 group headers + 4 choices = 6 items
+        expect(filteredChoices).toHaveLength(6)
         expect(filteredGroups).toHaveLength(2)
     })
 
@@ -134,9 +154,12 @@ describe('filterBySearch', () => {
         const { normalizedGroups, flatChoices } = createTestData()
         const { filteredChoices, filteredGroups } = filterBySearch(flatChoices, normalizedGroups, 'app')
 
-        expect(filteredChoices).toHaveLength(1)
+        // 1 group header + 1 matching choice = 2 items
+        expect(filteredChoices).toHaveLength(2)
         expect(filteredGroups).toHaveLength(1)
-        expect(filteredChoices[0]).toMatchObject({ value: 'apple' })
+        // First item is group header, second is the choice
+        expect(isGroupHeader(filteredChoices[0])).toBe(true)
+        expect(filteredChoices[1]).toMatchObject({ value: 'apple' })
     })
 
     it('should filter across multiple groups', () => {
@@ -144,7 +167,8 @@ describe('filterBySearch', () => {
         const { filteredChoices, filteredGroups } = filterBySearch(flatChoices, normalizedGroups, 'a')
 
         // Apple, Banana, Carrot all contain 'a'
-        expect(filteredChoices).toHaveLength(3)
+        // 2 group headers + 3 matching choices = 5 items
+        expect(filteredChoices).toHaveLength(5)
         expect(filteredGroups).toHaveLength(2)
     })
 
@@ -160,10 +184,10 @@ describe('filterBySearch', () => {
         const { normalizedGroups, flatChoices } = createTestData()
         const { filteredGroups } = filterBySearch(flatChoices, normalizedGroups, 'a')
 
-        // Fruits group: Apple, Banana (indices 0, 1)
-        // Vegetables group: Carrot (index 2)
-        expect(filteredGroups[0]).toMatchObject({ startIndex: 0, endIndex: 1 })
-        expect(filteredGroups[1]).toMatchObject({ startIndex: 2, endIndex: 2 })
+        // Fruits group: header at 0, Apple at 1, Banana at 2 (startIndex: 0, endIndex: 2)
+        // Vegetables group: header at 3, Carrot at 4 (startIndex: 3, endIndex: 4)
+        expect(filteredGroups[0]).toMatchObject({ startIndex: 0, endIndex: 2 })
+        expect(filteredGroups[1]).toMatchObject({ startIndex: 3, endIndex: 4 })
     })
 
     it('should use current checked state from flatChoices when no search query', () => {
@@ -171,10 +195,10 @@ describe('filterBySearch', () => {
 
         // Modify the checked state of some choices (simulating user interaction)
         const modifiedChoices = flatChoices.map((choice) => {
-            if (!Separator.isSeparator(choice) && choice.value === 'apple') {
+            if (!Separator.isSeparator(choice) && !isGroupHeader(choice) && choice.value === 'apple') {
                 return { ...choice, checked: true }
             }
-            if (!Separator.isSeparator(choice) && choice.value === 'carrot') {
+            if (!Separator.isSeparator(choice) && !isGroupHeader(choice) && choice.value === 'carrot') {
                 return { ...choice, checked: true }
             }
             return choice
@@ -202,10 +226,10 @@ describe('filterBySearch', () => {
 
         // Modify the checked state
         const modifiedChoices = flatChoices.map((choice) => {
-            if (!Separator.isSeparator(choice) && choice.value === 'apple') {
+            if (!Separator.isSeparator(choice) && !isGroupHeader(choice) && choice.value === 'apple') {
                 return { ...choice, checked: true }
             }
-            if (!Separator.isSeparator(choice) && choice.value === 'banana') {
+            if (!Separator.isSeparator(choice) && !isGroupHeader(choice) && choice.value === 'banana') {
                 return { ...choice, checked: true }
             }
             return choice
@@ -238,7 +262,7 @@ describe('filterBySearch', () => {
 
         // Select some items
         const modifiedChoices = flatChoices.map((choice) => {
-            if (!Separator.isSeparator(choice) && choice.value === 'apple') {
+            if (!Separator.isSeparator(choice) && !isGroupHeader(choice) && choice.value === 'apple') {
                 return { ...choice, checked: true }
             }
             return choice

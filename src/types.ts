@@ -55,7 +55,18 @@ export interface NormalizedGroup<Value> {
     choices: NormalizedChoice<Value>[]
 }
 
-export type Item<Value> = NormalizedChoice<Value> | Separator
+export interface GroupHeader {
+    type: 'group-header'
+    groupKey: string
+    label: string
+    icon?: string
+}
+
+export type Item<Value> = NormalizedChoice<Value> | Separator | GroupHeader
+
+export function isGroupHeader(item: unknown): item is GroupHeader {
+    return typeof item === 'object' && item !== null && 'type' in item && item.type === 'group-header'
+}
 
 export class Separator {
     readonly separator: string

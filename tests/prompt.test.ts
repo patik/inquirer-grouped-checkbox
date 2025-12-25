@@ -51,11 +51,36 @@ describe('groupedCheckbox', () => {
             ],
         })
 
+        events.keypress('down') // Move past group header to first choice
         events.keypress('space') // Select first item
         events.keypress('enter')
 
         await expect(answer).resolves.toEqual({
             group1: ['1'],
+        })
+    })
+
+    it('should toggle all items in group when selecting group header', async () => {
+        const { answer, events } = await render(groupedCheckbox, {
+            message: 'Select items',
+            groups: [
+                {
+                    key: 'group1',
+                    label: 'Group 1',
+                    choices: [
+                        { value: '1', name: 'Item 1' },
+                        { value: '2', name: 'Item 2' },
+                    ],
+                },
+            ],
+        })
+
+        // Cursor starts on group header
+        events.keypress('space') // Toggle all items in group
+        events.keypress('enter')
+
+        await expect(answer).resolves.toEqual({
+            group1: ['1', '2'],
         })
     })
 
@@ -71,6 +96,7 @@ describe('groupedCheckbox', () => {
             ],
         })
 
+        events.keypress('down') // Move past header to first item
         events.keypress('down') // Move to second item
         events.keypress('space') // Select second item
         events.keypress('enter')
@@ -97,6 +123,7 @@ describe('groupedCheckbox', () => {
             ],
         })
 
+        events.keypress('down') // Move past header
         events.keypress('a') // Select all
         events.keypress('enter')
 
@@ -121,6 +148,7 @@ describe('groupedCheckbox', () => {
             ],
         })
 
+        events.keypress('down') // Move past header
         events.keypress('i') // Invert
         events.keypress('enter')
 
@@ -163,6 +191,7 @@ describe('groupedCheckbox', () => {
             ],
         })
 
+        events.keypress('down') // Move past header
         events.keypress('a') // Try to select all
         events.keypress('enter')
 
@@ -239,6 +268,7 @@ describe('groupedCheckbox', () => {
             ],
         })
 
+        events.keypress('down') // Move past header
         events.keypress('space') // Select one item
         events.keypress('enter')
 
@@ -279,9 +309,11 @@ describe('groupedCheckbox', () => {
             ],
         })
 
+        events.keypress('down') // Move past group 1 header to first item
         events.keypress('space') // Select first item in group 1
-        events.keypress('down')
-        events.keypress('down') // Move to group 2
+        events.keypress('down') // Move to second item
+        events.keypress('down') // Move to group 2 header
+        events.keypress('down') // Move to first item in group 2
         events.keypress('space') // Select first item in group 2
         events.keypress('enter')
 
@@ -292,7 +324,7 @@ describe('groupedCheckbox', () => {
     })
 
     describe('filtered selection controls', () => {
-        it('should toggle only filtered items in group with Shift+A', async () => {
+        it('should toggle group via header when filtered', async () => {
             const { answer, events } = await render(groupedCheckbox, {
                 message: 'Select items',
                 searchable: true,
@@ -312,45 +344,13 @@ describe('groupedCheckbox', () => {
             // Filter to show only 'ap' items (Apple, Apricot)
             events.type('ap')
 
-            // Shift+A to select all filtered items in group
-            events.keypress({ name: 'a', shift: true })
+            // Cursor is on group header, space toggles filtered items
+            events.keypress('space')
             events.keypress('enter')
 
             // Only Apple and Apricot should be selected, not Banana
             await expect(answer).resolves.toEqual({
                 fruits: ['apple', 'apricot'],
-            })
-        })
-
-        it('should invert only filtered items in group with Shift+I', async () => {
-            const { answer, events } = await render(groupedCheckbox, {
-                message: 'Select items',
-                searchable: true,
-                groups: [
-                    {
-                        key: 'fruits',
-                        label: 'Fruits',
-                        choices: [
-                            { value: 'apple', name: 'Apple', checked: true },
-                            { value: 'apricot', name: 'Apricot', checked: false },
-                            { value: 'banana', name: 'Banana', checked: true },
-                        ],
-                    },
-                ],
-            })
-
-            // Filter to show only 'ap' items (Apple, Apricot)
-            events.type('ap')
-
-            // Shift+I to invert filtered items in group
-            events.keypress({ name: 'i', shift: true })
-            events.keypress('enter')
-
-            // Apple: was checked, now unchecked
-            // Apricot: was unchecked, now checked
-            // Banana: was checked, stays checked (not filtered)
-            await expect(answer).resolves.toEqual({
-                fruits: ['apricot', 'banana'],
             })
         })
 
@@ -380,6 +380,9 @@ describe('groupedCheckbox', () => {
 
             // Filter to show only items containing 'ch' (Cherry, Spinach)
             events.type('ch')
+
+            // Move past header first
+            events.keypress('down')
 
             // Ctrl+A to select all filtered items
             events.keypress({ name: 'a', ctrl: true })
@@ -419,6 +422,9 @@ describe('groupedCheckbox', () => {
             // Filter to show only items containing 'ch' (Cherry, Spinach)
             events.type('ch')
 
+            // Move past header first
+            events.keypress('down')
+
             // Ctrl+I to invert all filtered items
             events.keypress({ name: 'i', ctrl: true })
             events.keypress('enter')
@@ -452,6 +458,7 @@ describe('groupedCheckbox', () => {
 
             // Filter and select
             events.type('ap')
+            events.keypress('down') // Move past header
             events.keypress('space') // Select Apple
 
             // Clear search with Escape
@@ -489,9 +496,11 @@ describe('groupedCheckbox', () => {
                 ],
             })
 
-            // Start at first item in group 1
+            // Start at group 1 header
+            events.keypress('down') // Move to first item in group 1
             events.keypress('space') // Select '1'
-            events.keypress('tab') // Jump to group 2
+            events.keypress('tab') // Jump to group 2 header
+            events.keypress('down') // Move to first item in group 2
             events.keypress('space') // Select '3'
             events.keypress('enter')
 
@@ -518,9 +527,11 @@ describe('groupedCheckbox', () => {
                 ],
             })
 
-            events.keypress('tab') // Jump to group 2
+            events.keypress('tab') // Jump to group 2 header
+            events.keypress('down') // Move to first item in group 2
             events.keypress('space') // Select '2'
-            events.keypress({ name: 'tab', shift: true }) // Jump back to group 1
+            events.keypress({ name: 'tab', shift: true }) // Jump back to group 1 header
+            events.keypress('down') // Move to first item in group 1
             events.keypress('space') // Select '1'
             events.keypress('enter')
 
@@ -548,7 +559,8 @@ describe('groupedCheckbox', () => {
                 ],
             })
 
-            events.keypress('tab') // Should jump to vegetables, not type 'tab'
+            events.keypress('tab') // Should jump to vegetables header
+            events.keypress('down') // Move to first item (carrot)
             events.keypress('space') // Select carrot
             events.keypress('enter')
 
