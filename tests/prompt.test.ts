@@ -109,6 +109,31 @@ describe('groupedCheckbox', () => {
         })
     })
 
+    it('should toggle fully selected group to unselected', async () => {
+        const { answer, events } = await render(groupedCheckbox, {
+            message: 'Select items',
+            groups: [
+                {
+                    key: 'group1',
+                    label: 'Group 1',
+                    choices: [
+                        { value: '1', name: 'Item 1', checked: true },
+                        { value: '2', name: 'Item 2', checked: true },
+                        { value: '3', name: 'Item 3', checked: true },
+                    ],
+                },
+            ],
+        })
+
+        // Cursor starts on group header, toggle should unselect all since all are checked
+        events.keypress('space')
+        events.keypress('enter')
+
+        await expect(answer).resolves.toEqual({
+            group1: [],
+        })
+    })
+
     it('should do nothing when toggling group header with all disabled items', async () => {
         const { answer, events } = await render(groupedCheckbox, {
             message: 'Select items',
