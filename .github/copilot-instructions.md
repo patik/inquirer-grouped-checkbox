@@ -1,7 +1,5 @@
 # inquirer-grouped-checkbox
 
-A searchable, grouped checkbox prompt for Inquirer.js with per-group and global selection controls.
-
 ## Project description
 
 A searchable, grouped checkbox prompt for Inquirer.js with per-group and global selection controls.
@@ -16,11 +14,3 @@ A searchable, grouped checkbox prompt for Inquirer.js with per-group and global 
 - Prefer try/catch blocks for async operations instead of .then()/.catch()
 - Write JSDoc comments for all functions, classes, and complex code blocks
 - Write unit tests for all new functionality and bug fixes
-
-## Dependencies
-
-The main contributor of this repo (@patik) also maintains the following Node modules. While working on this repo, if you (the agent) discover a bug in one of these packages, or feel that a package could be improved in some way that would benefit this repo, please consider suggesting that the package be modified.
-
-- inquirer-form-prompt
-- inquirer-select-with-state
-- simple-stdout
