@@ -298,7 +298,10 @@ const groupedCheckbox: <Value>(
                     const checkbox = allChecked ? theme.icon.checked : theme.icon.unchecked
                     const cursor = isActive ? theme.icon.cursor : ' '
                     const headerText = theme.style.groupHeader(item.label, item.icon)
-                    const statsText = styleText('dim', ` (${stats.selected}/${stats.total})`)
+                    const statsText = config.hideGroupTotals
+                        ? ''
+                        : styleText('dim', ` (${stats.selected}/${stats.total})`)
+
                     return `${cursor} ${checkbox} ${headerText}${statsText}`
                 }
 
@@ -331,6 +334,13 @@ const groupedCheckbox: <Value>(
             return `${prefix} ${message}`
         }
 
+        // Add running total to message if not hidden
+        if (!config.hideOverallTotal) {
+            const totalSelected = choices.filter((c) => c.checked).length
+            const totalItems = choices.filter((c) => !c.disabled).length
+            message += styleText('dim', ` (${totalSelected}/${totalItems})`)
+        }
+
         let output = `${prefix} ${message}`
 
         if (config.searchable && searchQuery) {
@@ -348,14 +358,14 @@ const groupedCheckbox: <Value>(
             const toggleKey = config.searchable ? 'ctrl+a' : 'a'
             const invertKey = config.searchable ? 'ctrl+i' : 'i'
             const helpText = [
-                'space: select',
-                `${toggleKey}: toggle all`,
-                `${invertKey}: invert`,
-                config.searchable ? 'type to search' : '',
+                'Select: space',
+                `Toggle all: ${toggleKey}`,
+                `Invert: ${invertKey}`,
+                config.searchable ? 'Type to search' : '',
             ]
                 .filter(Boolean)
-                .join(', ')
-            output += `\n${styleText('dim', `(${helpText})`)}`
+                .join(' • ')
+            output += `\n\n${styleText('dim', `(${helpText})`)}`
         }
 
         if (errorMessage) {

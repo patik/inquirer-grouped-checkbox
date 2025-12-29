@@ -14,7 +14,7 @@ A searchable, grouped checkbox prompt for [Inquirer.js](https://github.com/SBoud
 - **Global controls** - Select all/none across all groups (a/i or Ctrl+A/Ctrl+I when searchable)
 - **Real-time search** - Filter choices across all groups simultaneously
 - **Keyboard navigation** - Navigate between items and jump between groups with Tab
-- **Selection stats** - See how many items are selected in each group
+- **Selection stats** - See how many items are selected in each group and overall
 - **Theming support** - Customize icons and colors
 
 ## Installation
@@ -68,15 +68,17 @@ Returns a `Promise` that resolves to an object with group keys mapping to arrays
 
 #### Config Options
 
-| Option       | Type       | Default    | Description                        |
-| ------------ | ---------- | ---------- | ---------------------------------- |
-| `message`    | `string`   | _required_ | The question to display            |
-| `groups`     | `Group[]`  | _required_ | Array of groups containing choices |
-| `searchable` | `boolean`  | `false`    | Enable real-time filtering         |
-| `pageSize`   | `number`   | `15`       | Number of items to display at once |
-| `required`   | `boolean`  | `false`    | Require at least one selection     |
-| `validate`   | `function` | -          | Custom validation function         |
-| `theme`      | `object`   | -          | Theme customization                |
+| Option             | Type       | Default    | Description                                                   |
+| ------------------ | ---------- | ---------- | ------------------------------------------------------------- |
+| `message`          | `string`   | _required_ | The question to display                                       |
+| `groups`           | `Group[]`  | _required_ | Array of groups containing choices                            |
+| `searchable`       | `boolean`  | `false`    | Enable real-time filtering                                    |
+| `pageSize`         | `number`   | `15`       | Number of items to display at once                            |
+| `required`         | `boolean`  | `false`    | Require at least one selection                                |
+| `validate`         | `function` | -          | Custom validation function                                    |
+| `theme`            | `object`   | -          | Theme customization                                           |
+| `hideOverallTotal` | `boolean`  | `false`    | Hide the running total that appears next to the message       |
+| `hideGroupTotals`  | `boolean`  | `false`    | Hide the running total that appears next to each group's name |
 
 #### Group Object
 
@@ -197,6 +199,19 @@ const selected = await groupedCheckbox({
                 },
             ],
         },
+    ],
+})
+```
+
+### Without Running Total
+
+```typescript
+const selected = await groupedCheckbox({
+    message: 'Select items',
+    hideOverallTotal: true, // Hide the (2/6) total from the message
+    hideGroupTotals: true, // Hide the (1/3) total from the group name
+    groups: [
+        /* ... */
     ],
 })
 ```

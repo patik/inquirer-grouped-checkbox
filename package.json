@@ -1,6 +1,6 @@
 {
     "name": "inquirer-grouped-checkbox",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "description": "A searchable, grouped checkbox prompt for Inquirer.js",
     "type": "module",
     "main": "./dist/index.cjs",
