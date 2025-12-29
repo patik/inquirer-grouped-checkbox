@@ -1,4 +1,4 @@
-import type { Theme } from '@inquirer/core'
+import type { Separator, Theme } from '@inquirer/core'
 import type { Prettify } from '@inquirer/type'
 import type { GroupedCheckboxTheme } from './theme.js'
 
@@ -15,12 +15,12 @@ export interface Group<Value> {
     key: string
     label: string
     icon?: string
-    choices: ReadonlyArray<Choice<Value>>
+    choices: Array<Choice<Value>>
 }
 
 export interface GroupedCheckboxConfig<Value> {
     message: string
-    groups: ReadonlyArray<Group<Value>>
+    groups: Array<Group<Value>>
     searchable?: boolean
     pageSize?: number
     required?: boolean
@@ -82,16 +82,4 @@ export type Item<Value> = NormalizedChoice<Value> | Separator | GroupHeader
  */
 export function isGroupHeader(item: unknown): item is GroupHeader {
     return typeof item === 'object' && item !== null && 'type' in item && item.type === 'group-header'
-}
-
-export class Separator {
-    readonly separator: string
-
-    constructor(separator = '────────────────────') {
-        this.separator = separator
-    }
-
-    static isSeparator(item: unknown): item is Separator {
-        return item instanceof Separator
-    }
 }

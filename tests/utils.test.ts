@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Group, NormalizedChoice, NormalizedGroup } from '../src/types.js'
-import { isGroupHeader, Separator } from '../src/types.js'
+import { isGroupHeader } from '../src/types.js'
 import {
     buildSelections,
     filterBySearch,
@@ -15,6 +15,7 @@ import {
     toggleAll,
     toggleGroup,
 } from '../src/utils.js'
+import { Separator } from '@inquirer/core'
 
 describe('normalizeGroups', () => {
     it('should normalize groups and create flat choices with group headers', () => {

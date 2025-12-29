@@ -1,5 +1,6 @@
+import { Separator } from '@inquirer/core'
 import type { Group, GroupedSelections, GroupHeader, Item, NormalizedChoice, NormalizedGroup } from './types.js'
-import { isGroupHeader, Separator } from './types.js'
+import { isGroupHeader } from './types.js'
 
 export function normalizeGroups<Value>(groups: ReadonlyArray<Group<Value>>): {
     normalizedGroups: NormalizedGroup<Value>[]

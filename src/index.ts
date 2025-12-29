@@ -7,6 +7,7 @@ import {
     isTabKey,
     isUpKey,
     makeTheme,
+    Separator,
     useKeypress,
     useMemo,
     usePagination,
@@ -20,7 +21,7 @@ import type { Context } from '@inquirer/type'
 import { styleText } from 'node:util'
 import { defaultTheme, type GroupedCheckboxTheme } from './theme.js'
 import type { GroupedCheckboxConfig, GroupedSelections, Item, NormalizedChoice } from './types.js'
-import { isGroupHeader, Separator } from './types.js'
+import { isGroupHeader } from './types.js'
 import {
     buildSelections,
     filterBySearch,
@@ -367,7 +368,7 @@ const groupedCheckbox: <Value>(
 
 export default groupedCheckbox
 export type { GroupedCheckboxTheme } from './theme.js'
-export { isGroupHeader, Separator } from './types.js'
+export { isGroupHeader } from './types.js'
 export type {
     Choice,
     Group,
