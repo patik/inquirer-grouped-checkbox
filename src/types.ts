@@ -15,12 +15,12 @@ export interface Group<Value> {
     key: string
     label: string
     icon?: string
-    choices: ReadonlyArray<Choice<Value>>
+    choices: Array<Choice<Value>>
 }
 
 export interface GroupedCheckboxConfig<Value> {
     message: string
-    groups: ReadonlyArray<Group<Value>>
+    groups: Array<Group<Value>>
     searchable?: boolean
     pageSize?: number
     required?: boolean
