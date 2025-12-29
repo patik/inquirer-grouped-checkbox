@@ -591,6 +591,245 @@ describe('groupedCheckbox', () => {
         })
     })
 
+    describe('Display totals', () => {
+        it('should show overall total by default', async () => {
+            const { getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1' },
+                            { value: '2', name: 'Item 2', checked: true },
+                            { value: '3', name: 'Item 3', disabled: true },
+                        ],
+                    },
+                ],
+            })
+
+            // Should show (1/2) - 1 selected out of 2 non-disabled items
+            expect(getScreen()).toContain('(1/2)')
+        })
+
+        it('should hide overall total when hideOverallTotal is true', async () => {
+            const { getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                hideOverallTotal: true,
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1' },
+                            { value: '2', name: 'Item 2', checked: true },
+                        ],
+                    },
+                ],
+            })
+
+            const screen = getScreen()
+            // Should not contain (1/2) after the message
+            expect(screen).not.toMatch(/Select items.*\(1\/2\)/)
+        })
+
+        it('should update overall total when selections change', async () => {
+            const { events, getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1' },
+                            { value: '2', name: 'Item 2' },
+                            { value: '3', name: 'Item 3' },
+                        ],
+                    },
+                ],
+            })
+
+            // Initially (0/3)
+            expect(getScreen()).toContain('(0/3)')
+
+            events.keypress('down') // Move to first item
+            events.keypress('space') // Select first item
+
+            // Now (1/3)
+            expect(getScreen()).toContain('(1/3)')
+
+            events.keypress('down') // Move to second item
+            events.keypress('space') // Select second item
+
+            // Now (2/3)
+            expect(getScreen()).toContain('(2/3)')
+        })
+
+        it('should show overall total across multiple groups', async () => {
+            const { getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1', checked: true },
+                            { value: '2', name: 'Item 2' },
+                        ],
+                    },
+                    {
+                        key: 'group2',
+                        label: 'Group 2',
+                        choices: [
+                            { value: '3', name: 'Item 3', checked: true },
+                            { value: '4', name: 'Item 4' },
+                            { value: '5', name: 'Item 5' },
+                        ],
+                    },
+                ],
+            })
+
+            // Should show (2/5) - 2 selected out of 5 total items
+            expect(getScreen()).toContain('(2/5)')
+        })
+
+        it('should exclude disabled items from overall total', async () => {
+            const { getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1', checked: true },
+                            { value: '2', name: 'Item 2' },
+                            { value: '3', name: 'Item 3', disabled: true },
+                            { value: '4', name: 'Item 4', disabled: 'Not available' },
+                        ],
+                    },
+                ],
+            })
+
+            // Should show (1/2) - 1 selected out of 2 non-disabled items
+            expect(getScreen()).toContain('(1/2)')
+        })
+
+        it('should show group totals by default', async () => {
+            const { getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1', checked: true },
+                            { value: '2', name: 'Item 2' },
+                            { value: '3', name: 'Item 3' },
+                        ],
+                    },
+                ],
+            })
+
+            const screen = getScreen()
+            // Should show group header with (1/3)
+            expect(screen).toContain('Group 1')
+            expect(screen).toMatch(/Group 1.*\(1\/3\)/)
+        })
+
+        it('should hide group totals when hideGroupTotals is true', async () => {
+            const { getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                hideGroupTotals: true,
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1', checked: true },
+                            { value: '2', name: 'Item 2' },
+                        ],
+                    },
+                ],
+            })
+
+            const screen = getScreen()
+            expect(screen).toContain('Group 1')
+            // Should not show (1/2) next to the group name
+            expect(screen).not.toMatch(/Group 1.*\(1\/2\)/)
+        })
+
+        it('should hide both overall and group totals when both flags are true', async () => {
+            const { getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                hideOverallTotal: true,
+                hideGroupTotals: true,
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1', checked: true },
+                            { value: '2', name: 'Item 2' },
+                        ],
+                    },
+                ],
+            })
+
+            const screen = getScreen()
+            // Should show the message and group name but no totals
+            expect(screen).toContain('Select items')
+            expect(screen).toContain('Group 1')
+            // Should not contain any totals
+            expect(screen).not.toMatch(/\(\d+\/\d+\)/)
+        })
+
+        it('should exclude disabled items from group totals', async () => {
+            const { getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1', checked: true },
+                            { value: '2', name: 'Item 2' },
+                            { value: '3', name: 'Item 3', disabled: true },
+                        ],
+                    },
+                ],
+            })
+
+            const screen = getScreen()
+            // Should show (1/2) next to group, excluding disabled item
+            expect(screen).toMatch(/Group 1.*\(1\/2\)/)
+        })
+
+        it('should update group totals when group selections change', async () => {
+            const { events, getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups: [
+                    {
+                        key: 'group1',
+                        label: 'Group 1',
+                        choices: [
+                            { value: '1', name: 'Item 1' },
+                            { value: '2', name: 'Item 2' },
+                        ],
+                    },
+                ],
+            })
+
+            // Initially (0/2)
+            expect(getScreen()).toMatch(/Group 1.*\(0\/2\)/)
+
+            // Toggle all items in the group via group header
+            events.keypress('space')
+
+            // Now (2/2)
+            expect(getScreen()).toMatch(/Group 1.*\(2\/2\)/)
+        })
+    })
+
     describe('Tab navigation', () => {
         it('should jump between groups with Tab', async () => {
             const { answer, events } = await render(groupedCheckbox, {

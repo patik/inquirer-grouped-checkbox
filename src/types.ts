@@ -15,17 +15,23 @@ export interface Group<Value> {
     key: string
     label: string
     icon?: string
-    choices: Array<Choice<Value>>
+    choices: ReadonlyArray<Choice<Value>>
 }
 
 export interface GroupedCheckboxConfig<Value> {
     message: string
-    groups: Array<Group<Value>>
+    groups: ReadonlyArray<Group<Value>>
     searchable?: boolean
     pageSize?: number
     required?: boolean
     validate?: (selections: GroupedSelections<Value>) => boolean | string | Promise<boolean | string>
     theme?: PartialTheme
+
+    /** Hide running total of selected items next to each group's name, e.g. "(2/6)". Defaults to false. */
+    hideGroupTotals?: boolean
+
+    /** Hide running total of selected items in the message, e.g. "(2/6)". Defaults to false. */
+    hideOverallTotal?: boolean
 }
 
 export type PartialTheme = Prettify<Partial<Theme<GroupedCheckboxTheme>> & { checkbox?: Partial<GroupedCheckboxTheme> }>
