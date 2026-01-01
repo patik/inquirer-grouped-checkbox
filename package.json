@@ -1,6 +1,6 @@
 {
     "name": "inquirer-grouped-checkbox",
-    "version": "0.5.2",
+    "version": "1.0.0",
     "description": "A searchable, grouped checkbox prompt for Inquirer.js",
     "type": "module",
     "main": "./dist/index.cjs",
@@ -51,7 +51,7 @@
         "url": "https://github.com/patik/inquirer-grouped-checkbox.git"
     },
     "license": "MIT",
-    "packageManager": "pnpm@10.24.0",
+    "packageManager": "pnpm@10.27.0",
     "dependencies": {
         "@inquirer/core": "^11.1.0",
         "@inquirer/figures": "^2.0.2"
@@ -69,7 +69,7 @@
         "tsup": "^8.0.0",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3",
-        "typescript-eslint": "^8.50.1",
+        "typescript-eslint": "^8.51.0",
         "vitest": "^4.0.16"
     }
 }

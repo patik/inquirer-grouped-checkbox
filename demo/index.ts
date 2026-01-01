@@ -4,8 +4,7 @@ import groupedCheckbox from '../src/index.js'
 
 async function main() {
     console.log('\n🛒 Grocery Shopping List Demo\n')
-    console.log('Use arrow keys to navigate, space to select, enter to confirm.')
-    console.log('Try: Tab to jump between groups, Shift+A to select all in group.\n')
+    console.log('Use arrow keys to navigate, space to select, tab to jump between groups, enter to confirm.\n')
 
     const selected = await groupedCheckbox({
         message: 'What would you like to buy?',
