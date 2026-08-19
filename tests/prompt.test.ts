@@ -976,6 +976,10 @@ describe('groupedCheckbox', () => {
         })
 
         it('should ignore vim keys when no keybindings are enabled', async () => {
+            // Stubbed explicitly: without this the test inherits the developer's
+            // INQUIRER_KEYBINDINGS and fails for anyone who has vim enabled.
+            vi.stubEnv('INQUIRER_KEYBINDINGS', '')
+
             const { answer, events } = await render(groupedCheckbox, {
                 message: 'Select items',
                 groups,
@@ -986,6 +990,23 @@ describe('groupedCheckbox', () => {
             events.keypress('enter')
 
             await expect(answer).resolves.toEqual({ fruits: ['apple', 'banana'] })
+        })
+
+        it('should keep emacs keys working when searchable', async () => {
+            vi.stubEnv('INQUIRER_KEYBINDINGS', 'emacs')
+
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups,
+            })
+
+            // Ctrl+N is never search input, so it must still navigate
+            events.keypress({ name: 'n', ctrl: true }) // Down: group header -> Apple
+            events.keypress('space')
+            events.keypress('enter')
+
+            await expect(answer).resolves.toEqual({ fruits: ['apple'] })
         })
 
         it('should treat vim keys as search input when searchable', async () => {
@@ -1057,6 +1078,22 @@ describe('groupedCheckbox', () => {
 
             expect(config.theme?.checkbox?.style?.highlight?.('apple')).toBe('APPLE')
             expect(config.theme?.checkbox?.icon?.checked).toBe('[x]')
+        })
+
+        // Compile-time assertion, verified by `pnpm typecheck`: only `checkbox` is
+        // read by the prompt, so a top-level Inquirer theme key must be a type error
+        // rather than an override that silently does nothing.
+        it('should reject theme keys outside of `checkbox`', () => {
+            const config: GroupedCheckboxConfig<string> = {
+                message: 'Select items',
+                groups: [],
+                theme: {
+                    // @ts-expect-error -- `icon` belongs under `checkbox`
+                    icon: { checked: '[x]' },
+                },
+            }
+
+            expect(config.theme?.checkbox).toBeUndefined()
         })
 
         it('should accept a single style override and contextually type its argument', async () => {

@@ -1,4 +1,4 @@
-import type { Separator, Theme } from '@inquirer/core'
+import type { Separator } from '@inquirer/core'
 import type { Prettify } from '@inquirer/type'
 import type { GroupedCheckboxTheme } from './theme.js'
 
@@ -56,10 +56,12 @@ type ThemeOverride<T> = T extends (...args: never[]) => unknown
  * A theme override. Every level is optional, so a single icon or a single style
  * function can be replaced and the rest inherited — `makeTheme` deep-merges what
  * is passed over `defaultTheme`.
+ *
+ * `checkbox` is the only key, because it is the only key the prompt reads. Spreading
+ * Inquirer's own `Theme` at the top level as well would let `theme: { icon: … }` or
+ * `theme: { keybindings: … }` type-check and then be silently discarded.
  */
-export type PartialTheme = Prettify<
-    ThemeOverride<Theme<GroupedCheckboxTheme>> & { checkbox?: ThemeOverride<GroupedCheckboxTheme> }
->
+export type PartialTheme = Prettify<{ checkbox?: ThemeOverride<GroupedCheckboxTheme> }>
 
 export interface GroupedSelections<Value> {
     [groupKey: string]: Value[]

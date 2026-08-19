@@ -132,8 +132,9 @@ INQUIRER_KEYBINDINGS=vim node ./my-prompt.js
 | `vim`      | `k`      | `j`       |
 | `emacs`    | `Ctrl+P` | `Ctrl+N`  |
 
-These are deliberately ignored when `searchable: true`, since their letter keys are search input
-there. Arrow keys always work regardless.
+Vim's `j`/`k` are ignored when `searchable: true`, since those letters are search input there.
+Emacs' `Ctrl+P`/`Ctrl+N` keep working in both modes, because Ctrl-modified keys are never search
+input. Arrow keys always work regardless.
 
 Group headers are navigable and display a checkbox. Pressing `Space` on a group header toggles all non-disabled items within that group. The header shows the selection count (e.g., `(2/5)`) and its checkbox reflects whether all items in the group are selected.
 

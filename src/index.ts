@@ -60,8 +60,12 @@ const groupedCheckbox: <Value>(
         const prefix = usePrefix({ status, theme })
 
         // Alternative navigation keybindings (vim/emacs, opt-in via INQUIRER_KEYBINDINGS).
-        // They stay off while searching, since their letter keys are search input there.
-        const keybindings = config.searchable ? [] : theme.keybindings
+        // Vim's bare `j`/`k` are search input while searching, so that binding is dropped
+        // there. Emacs' Ctrl+N/Ctrl+P can never be search input (the search branch below
+        // ignores Ctrl-modified keys), so it stays active in both modes.
+        const keybindings = config.searchable
+            ? theme.keybindings.filter((binding) => binding !== 'vim')
+            : theme.keybindings
 
         const { filteredChoices, filteredGroups } = useMemo(
             () => filterBySearch(choices, initialGroups, searchQuery),
