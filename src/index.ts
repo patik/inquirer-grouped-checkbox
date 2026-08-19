@@ -12,7 +12,6 @@ import {
     useMemo,
     usePagination,
     usePrefix,
-    useRef,
     useState,
     type KeypressEvent,
     type Status,
@@ -34,7 +33,6 @@ import {
 } from './utils.js'
 
 interface ExtendedKey extends KeypressEvent {
-    shift: boolean
     sequence?: string
 }
 
@@ -61,28 +59,20 @@ const groupedCheckbox: <Value>(
         const theme = makeTheme<GroupedCheckboxTheme>(defaultTheme, config.theme?.checkbox)
         const prefix = usePrefix({ status, theme })
 
+        // Alternative navigation keybindings (vim/emacs, opt-in via INQUIRER_KEYBINDINGS).
+        // Vim's bare `j`/`k` are search input while searching, so that binding is dropped
+        // there. Emacs' Ctrl+N/Ctrl+P can never be search input (the search branch below
+        // ignores Ctrl-modified keys), so it stays active in both modes.
+        const keybindings = config.searchable
+            ? theme.keybindings.filter((binding) => binding !== 'vim')
+            : theme.keybindings
+
         const { filteredChoices, filteredGroups } = useMemo(
             () => filterBySearch(choices, initialGroups, searchQuery),
             [choices, initialGroups, searchQuery],
         )
 
-        // Use ref to track current cursor for keypress handler
-        const cursorRef = useRef(cursorIndex)
-        cursorRef.current = cursorIndex
-
-        const choicesRef = useRef(choices)
-        choicesRef.current = choices
-
-        const searchRef = useRef(searchQuery)
-        searchRef.current = searchQuery
-
-        const filteredChoicesRef = useRef(filteredChoices)
-        filteredChoicesRef.current = filteredChoices
-
         const currentGroup = useMemo(() => getCurrentGroup(cursorIndex, filteredGroups), [cursorIndex, filteredGroups])
-
-        const currentGroupRef = useRef(currentGroup)
-        currentGroupRef.current = currentGroup
 
         useKeypress((event) => {
             const key = event as ExtendedKey
@@ -91,7 +81,7 @@ const groupedCheckbox: <Value>(
             setErrorMessage(undefined)
 
             if (isEnterKey(key)) {
-                const selections = buildSelections(choicesRef.current, initialGroups)
+                const selections = buildSelections(choices, initialGroups)
 
                 if (config.required) {
                     const hasSelection = Object.values(selections).some((arr) => arr.length > 0)
@@ -127,20 +117,20 @@ const groupedCheckbox: <Value>(
                 return
             }
 
-            if (isUpKey(key)) {
-                const newIndex = findNextSelectableIndex(filteredChoices, cursorRef.current, -1)
+            if (isUpKey(key, keybindings)) {
+                const newIndex = findNextSelectableIndex(filteredChoices, cursorIndex, -1)
                 setCursorIndex(newIndex)
                 return
             }
 
-            if (isDownKey(key)) {
-                const newIndex = findNextSelectableIndex(filteredChoices, cursorRef.current, 1)
+            if (isDownKey(key, keybindings)) {
+                const newIndex = findNextSelectableIndex(filteredChoices, cursorIndex, 1)
                 setCursorIndex(newIndex)
                 return
             }
 
             if (isSpaceKey(key)) {
-                const currentItem = filteredChoices[cursorRef.current]
+                const currentItem = filteredChoices[cursorIndex]
                 if (!currentItem) return
 
                 // Handle group header toggle
@@ -148,7 +138,7 @@ const groupedCheckbox: <Value>(
                     const group = filteredGroups.find((g) => g.key === currentItem.groupKey)
                     if (group) {
                         // Get visible choices in this group (filtered by search)
-                        const visibleGroupChoices = filteredChoicesRef.current.filter(
+                        const visibleGroupChoices = filteredChoices.filter(
                             (c): c is NormalizedChoice<Value> =>
                                 !Separator.isSeparator(c) &&
                                 !isGroupHeader(c) &&
@@ -162,8 +152,8 @@ const groupedCheckbox: <Value>(
                         const allVisibleChecked = visibleGroupChoices.every((c) => c.checked)
                         const visibleValues = new Set(visibleGroupChoices.map((c) => c.value))
                         // Toggle only the visible choices
-                        setChoices(
-                            choicesRef.current.map((choice) => {
+                        setChoices((current) =>
+                            current.map((choice) => {
                                 if (
                                     choice.groupKey === group.key &&
                                     !choice.disabled &&
@@ -180,13 +170,14 @@ const groupedCheckbox: <Value>(
 
                 // Handle regular choice toggle
                 if (isSelectableItem(currentItem)) {
-                    const newChoices = choicesRef.current.map((choice) => {
-                        if (choice.value === currentItem.value && choice.groupKey === currentItem.groupKey) {
-                            return { ...choice, checked: !choice.checked }
-                        }
-                        return choice
-                    })
-                    setChoices(newChoices)
+                    setChoices((current) =>
+                        current.map((choice) => {
+                            if (choice.value === currentItem.value && choice.groupKey === currentItem.groupKey) {
+                                return { ...choice, checked: !choice.checked }
+                            }
+                            return choice
+                        }),
+                    )
                 }
                 return
             }
@@ -194,14 +185,14 @@ const groupedCheckbox: <Value>(
             // Search input (when searchable) - handle first to capture alphanumeric keys
             if (config.searchable) {
                 if (isBackspaceKey(key)) {
-                    setSearchQuery(searchRef.current.slice(0, -1))
+                    setSearchQuery((current) => current.slice(0, -1))
                     setCursorIndex(0)
                     return
                 }
 
                 if (key.name === 'escape') {
                     setSearchQuery('')
-                    setCursorIndex(findFirstSelectableIndex(choicesRef.current))
+                    setCursorIndex(findFirstSelectableIndex(choices))
                     return
                 }
 
@@ -213,7 +204,8 @@ const groupedCheckbox: <Value>(
                     !isTabKey(key) &&
                     /^[a-zA-Z0-9\-_./\s]$/.test(key.sequence)
                 ) {
-                    setSearchQuery(searchRef.current + key.sequence)
+                    const { sequence } = key
+                    setSearchQuery((current) => current + sequence)
                     setCursorIndex(0)
                     return
                 }
@@ -221,13 +213,13 @@ const groupedCheckbox: <Value>(
 
             // Global toggle all: Ctrl+A (or 'a' when not searchable) - operates on filtered/visible choices only
             if ((key.name === 'a' && key.ctrl) || (key.name === 'a' && !key.shift && !config.searchable)) {
-                const visibleChoices = filteredChoicesRef.current.filter(
+                const visibleChoices = filteredChoices.filter(
                     (c): c is NormalizedChoice<Value> => !Separator.isSeparator(c) && !isGroupHeader(c) && !c.disabled,
                 )
                 const allVisibleChecked = visibleChoices.every((c) => c.checked)
                 const visibleValues = new Set(visibleChoices.map((c) => c.value))
-                setChoices(
-                    choicesRef.current.map((choice) => {
+                setChoices((current) =>
+                    current.map((choice) => {
                         if (!choice.disabled && visibleValues.has(choice.value)) {
                             return { ...choice, checked: !allVisibleChecked }
                         }
@@ -239,12 +231,12 @@ const groupedCheckbox: <Value>(
 
             // Global invert: Ctrl+I (or 'i' when not searchable) - operates on filtered/visible choices only
             if ((key.name === 'i' && key.ctrl) || (key.name === 'i' && !key.shift && !config.searchable)) {
-                const visibleChoices = filteredChoicesRef.current.filter(
+                const visibleChoices = filteredChoices.filter(
                     (c): c is NormalizedChoice<Value> => !Separator.isSeparator(c) && !isGroupHeader(c) && !c.disabled,
                 )
                 const visibleValues = new Set(visibleChoices.map((c) => c.value))
-                setChoices(
-                    choicesRef.current.map((choice) => {
+                setChoices((current) =>
+                    current.map((choice) => {
                         if (!choice.disabled && visibleValues.has(choice.value)) {
                             return { ...choice, checked: !choice.checked }
                         }
@@ -256,8 +248,8 @@ const groupedCheckbox: <Value>(
 
             // Tab: jump to next group
             if (isTabKey(key) && !key.shift) {
-                if (currentGroupRef.current && filteredGroups.length > 1) {
-                    const currentGroupIdx = filteredGroups.findIndex((g) => g.key === currentGroupRef.current!.key)
+                if (currentGroup && filteredGroups.length > 1) {
+                    const currentGroupIdx = filteredGroups.findIndex((g) => g.key === currentGroup!.key)
                     const nextGroupIdx = (currentGroupIdx + 1) % filteredGroups.length
                     const nextGroup = filteredGroups[nextGroupIdx]
                     if (nextGroup) {
@@ -269,8 +261,8 @@ const groupedCheckbox: <Value>(
 
             // Shift+Tab: jump to previous group
             if (isTabKey(key) && key.shift) {
-                if (currentGroupRef.current && filteredGroups.length > 1) {
-                    const currentGroupIdx = filteredGroups.findIndex((g) => g.key === currentGroupRef.current!.key)
+                if (currentGroup && filteredGroups.length > 1) {
+                    const currentGroupIdx = filteredGroups.findIndex((g) => g.key === currentGroup!.key)
                     const prevGroupIdx = currentGroupIdx === 0 ? filteredGroups.length - 1 : currentGroupIdx - 1
                     const prevGroup = filteredGroups[prevGroupIdx]
                     if (prevGroup) {

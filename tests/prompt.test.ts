@@ -1,7 +1,7 @@
 import { render } from '@inquirer/testing'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import groupedCheckbox from '../src/index.js'
-import type { GroupedSelections } from '../src/types.js'
+import type { GroupedCheckboxConfig, GroupedSelections } from '../src/types.js'
 
 describe('groupedCheckbox', () => {
     it('should render groups with choices', async () => {
@@ -923,6 +923,200 @@ describe('groupedCheckbox', () => {
                 fruits: [],
                 vegetables: ['carrot'],
             })
+        })
+    })
+    describe('Alternative keybindings', () => {
+        afterEach(() => {
+            vi.unstubAllEnvs()
+        })
+
+        const groups = [
+            {
+                key: 'fruits',
+                label: 'Fruits',
+                choices: [
+                    { value: 'apple', name: 'Apple' },
+                    { value: 'banana', name: 'Banana' },
+                ],
+            },
+        ]
+
+        it('should navigate with vim keys when enabled', async () => {
+            vi.stubEnv('INQUIRER_KEYBINDINGS', 'vim')
+
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups,
+            })
+
+            events.keypress('j') // Down: group header -> Apple
+            events.keypress('j') // Down: Apple -> Banana
+            events.keypress('k') // Up: Banana -> Apple
+            events.keypress('space')
+            events.keypress('enter')
+
+            await expect(answer).resolves.toEqual({ fruits: ['apple'] })
+        })
+
+        it('should navigate with emacs keys when enabled', async () => {
+            vi.stubEnv('INQUIRER_KEYBINDINGS', 'emacs')
+
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups,
+            })
+
+            events.keypress({ name: 'n', ctrl: true }) // Down: group header -> Apple
+            events.keypress({ name: 'n', ctrl: true }) // Down: Apple -> Banana
+            events.keypress({ name: 'p', ctrl: true }) // Up: Banana -> Apple
+            events.keypress('space')
+            events.keypress('enter')
+
+            await expect(answer).resolves.toEqual({ fruits: ['apple'] })
+        })
+
+        it('should ignore vim keys when no keybindings are enabled', async () => {
+            // Stubbed explicitly: without this the test inherits the developer's
+            // INQUIRER_KEYBINDINGS and fails for anyone who has vim enabled.
+            vi.stubEnv('INQUIRER_KEYBINDINGS', '')
+
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                groups,
+            })
+
+            events.keypress('j') // Should not move the cursor
+            events.keypress('space') // Toggles the group header instead
+            events.keypress('enter')
+
+            await expect(answer).resolves.toEqual({ fruits: ['apple', 'banana'] })
+        })
+
+        it('should keep emacs keys working when searchable', async () => {
+            vi.stubEnv('INQUIRER_KEYBINDINGS', 'emacs')
+
+            const { answer, events } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups,
+            })
+
+            // Ctrl+N is never search input, so it must still navigate
+            events.keypress({ name: 'n', ctrl: true }) // Down: group header -> Apple
+            events.keypress('space')
+            events.keypress('enter')
+
+            await expect(answer).resolves.toEqual({ fruits: ['apple'] })
+        })
+
+        it('should treat vim keys as search input when searchable', async () => {
+            vi.stubEnv('INQUIRER_KEYBINDINGS', 'vim')
+
+            const { answer, events, getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                searchable: true,
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [
+                            { value: 'apple', name: 'Apple' },
+                            { value: 'jackfruit', name: 'Jackfruit' },
+                        ],
+                    },
+                ],
+            })
+
+            events.type('j') // Must type into the search box, not navigate
+
+            expect(getScreen()).toContain('[j]')
+            expect(getScreen()).toContain('Jackfruit')
+            expect(getScreen()).not.toContain('Apple')
+
+            events.keypress('down') // Group header -> Jackfruit
+            events.keypress('space')
+            events.keypress('enter')
+
+            await expect(answer).resolves.toEqual({ fruits: ['jackfruit'] })
+        })
+    })
+    describe('Theme overrides', () => {
+        it('should accept a single icon override without the sibling icons', async () => {
+            const { answer, events, getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                theme: { checkbox: { icon: { checked: '[x]' } } },
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [{ value: 'apple', name: 'Apple', checked: true }],
+                    },
+                ],
+            })
+
+            expect(getScreen()).toContain('[x] Apple')
+
+            events.keypress('enter')
+            await expect(answer).resolves.toEqual({ fruits: ['apple'] })
+        })
+
+        // Compile-time assertion, verified by `pnpm typecheck` rather than at
+        // runtime: overriding one style function must not require its siblings
+        // (a shallow `Partial` would demand all five), and `text` must be
+        // contextually typed as a string without an annotation.
+        it('should type a partial theme override', () => {
+            const config: GroupedCheckboxConfig<string> = {
+                message: 'Select items',
+                groups: [],
+                theme: {
+                    checkbox: {
+                        icon: { checked: '[x]' },
+                        style: { highlight: (text) => text.toUpperCase() },
+                    },
+                },
+            }
+
+            expect(config.theme?.checkbox?.style?.highlight?.('apple')).toBe('APPLE')
+            expect(config.theme?.checkbox?.icon?.checked).toBe('[x]')
+        })
+
+        // Compile-time assertion, verified by `pnpm typecheck`: only `checkbox` is
+        // read by the prompt, so a top-level Inquirer theme key must be a type error
+        // rather than an override that silently does nothing.
+        it('should reject theme keys outside of `checkbox`', () => {
+            const config: GroupedCheckboxConfig<string> = {
+                message: 'Select items',
+                groups: [],
+                theme: {
+                    // @ts-expect-error -- `icon` belongs under `checkbox`
+                    icon: { checked: '[x]' },
+                },
+            }
+
+            expect(config.theme?.checkbox).toBeUndefined()
+        })
+
+        it('should accept a single style override and contextually type its argument', async () => {
+            const { answer, events, getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                theme: {
+                    checkbox: {
+                        style: { highlight: (text: string) => `<<${text.toUpperCase()}>>` },
+                    },
+                },
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [{ value: 'apple', name: 'Apple', checked: true }],
+                    },
+                ],
+            })
+
+            expect(getScreen()).toContain('<<APPLE>>')
+
+            events.keypress('enter')
+            await expect(answer).resolves.toEqual({ fruits: ['apple'] })
         })
     })
 })
