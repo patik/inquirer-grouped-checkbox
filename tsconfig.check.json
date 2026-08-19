@@ -1,0 +1,12 @@
+{
+    // Type checking only. The base config stays scoped to `src` because the dts
+    // build needs a single `rootDir`; this widens the net to the tests and the
+    // demo so everything in the repo is held to the same strict settings.
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": true,
+        "rootDir": "."
+    },
+    "include": ["src/**/*", "tests/**/*", "demo/**/*"],
+    "exclude": ["node_modules", "dist"]
+}

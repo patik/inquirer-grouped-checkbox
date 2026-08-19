@@ -1,7 +1,7 @@
 import { render } from '@inquirer/testing'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import groupedCheckbox from '../src/index.js'
-import type { GroupedSelections } from '../src/types.js'
+import type { GroupedCheckboxConfig, GroupedSelections } from '../src/types.js'
 
 describe('groupedCheckbox', () => {
     it('should render groups with choices', async () => {
@@ -1017,6 +1017,69 @@ describe('groupedCheckbox', () => {
             events.keypress('enter')
 
             await expect(answer).resolves.toEqual({ fruits: ['jackfruit'] })
+        })
+    })
+    describe('Theme overrides', () => {
+        it('should accept a single icon override without the sibling icons', async () => {
+            const { answer, events, getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                theme: { checkbox: { icon: { checked: '[x]' } } },
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [{ value: 'apple', name: 'Apple', checked: true }],
+                    },
+                ],
+            })
+
+            expect(getScreen()).toContain('[x] Apple')
+
+            events.keypress('enter')
+            await expect(answer).resolves.toEqual({ fruits: ['apple'] })
+        })
+
+        // Compile-time assertion, verified by `pnpm typecheck` rather than at
+        // runtime: overriding one style function must not require its siblings
+        // (a shallow `Partial` would demand all five), and `text` must be
+        // contextually typed as a string without an annotation.
+        it('should type a partial theme override', () => {
+            const config: GroupedCheckboxConfig<string> = {
+                message: 'Select items',
+                groups: [],
+                theme: {
+                    checkbox: {
+                        icon: { checked: '[x]' },
+                        style: { highlight: (text) => text.toUpperCase() },
+                    },
+                },
+            }
+
+            expect(config.theme?.checkbox?.style?.highlight?.('apple')).toBe('APPLE')
+            expect(config.theme?.checkbox?.icon?.checked).toBe('[x]')
+        })
+
+        it('should accept a single style override and contextually type its argument', async () => {
+            const { answer, events, getScreen } = await render(groupedCheckbox, {
+                message: 'Select items',
+                theme: {
+                    checkbox: {
+                        style: { highlight: (text: string) => `<<${text.toUpperCase()}>>` },
+                    },
+                },
+                groups: [
+                    {
+                        key: 'fruits',
+                        label: 'Fruits',
+                        choices: [{ value: 'apple', name: 'Apple', checked: true }],
+                    },
+                ],
+            })
+
+            expect(getScreen()).toContain('<<APPLE>>')
+
+            events.keypress('enter')
+            await expect(answer).resolves.toEqual({ fruits: ['apple'] })
         })
     })
 })

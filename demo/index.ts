@@ -47,17 +47,19 @@ async function main() {
 
     console.log('\n✅ Your shopping list:\n')
 
-    if (selected.fruits.length > 0) {
+    const { fruits = [], vegetables = [] } = selected
+
+    if (fruits.length > 0) {
         console.log('🍎 Fruits:')
-        selected.fruits.forEach((fruit) => console.log(`   - ${fruit}`))
+        fruits.forEach((fruit) => console.log(`   - ${fruit}`))
     }
 
-    if (selected.vegetables.length > 0) {
+    if (vegetables.length > 0) {
         console.log('🥬 Vegetables:')
-        selected.vegetables.forEach((veg) => console.log(`   - ${veg}`))
+        vegetables.forEach((veg) => console.log(`   - ${veg}`))
     }
 
-    const total = selected.fruits.length + selected.vegetables.length
+    const total = fruits.length + vegetables.length
     if (total === 0) {
         console.log('   (nothing selected)')
     } else {

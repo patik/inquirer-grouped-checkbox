@@ -15,12 +15,12 @@ export interface Group<Value> {
     key: string
     label: string
     icon?: string
-    choices: Array<Choice<Value>>
+    choices: ReadonlyArray<Choice<Value>>
 }
 
 export interface GroupedCheckboxConfig<Value> {
     message: string
-    groups: Array<Group<Value>>
+    groups: ReadonlyArray<Group<Value>>
     searchable?: boolean
     pageSize?: number
     required?: boolean
@@ -34,7 +34,32 @@ export interface GroupedCheckboxConfig<Value> {
     hideOverallTotal?: boolean
 }
 
-export type PartialTheme = Prettify<Partial<Theme<GroupedCheckboxTheme>> & { checkbox?: Partial<GroupedCheckboxTheme> }>
+/**
+ * Recursive `Partial` that treats functions and arrays as leaves.
+ *
+ * `PartialDeep` from `@inquirer/type` maps over every member of an object type,
+ * and because functions and arrays are themselves objects it rewrites those too:
+ * a style function such as `(text: string) => string` collapses to `{}`, which
+ * is neither callable nor able to contextually type a `(text) => ...` override.
+ * Stopping the recursion at those two shapes keeps every level individually
+ * optional while leaving the values themselves intact.
+ */
+type ThemeOverride<T> = T extends (...args: never[]) => unknown
+    ? T
+    : T extends ReadonlyArray<unknown>
+      ? T
+      : T extends object
+        ? { [P in keyof T]?: ThemeOverride<T[P]> }
+        : T
+
+/**
+ * A theme override. Every level is optional, so a single icon or a single style
+ * function can be replaced and the rest inherited — `makeTheme` deep-merges what
+ * is passed over `defaultTheme`.
+ */
+export type PartialTheme = Prettify<
+    ThemeOverride<Theme<GroupedCheckboxTheme>> & { checkbox?: ThemeOverride<GroupedCheckboxTheme> }
+>
 
 export interface GroupedSelections<Value> {
     [groupKey: string]: Value[]
