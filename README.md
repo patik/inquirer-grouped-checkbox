@@ -13,7 +13,7 @@ A searchable, grouped checkbox prompt for [Inquirer.js](https://github.com/SBoud
 - **Selectable group headers** - Toggle all items in a group by selecting the group header
 - **Global controls** - Select all/none across all groups (a/i or Ctrl+A/Ctrl+I when searchable)
 - **Real-time search** - Filter choices across all groups simultaneously
-- **Keyboard navigation** - Navigate between items and jump between groups with Tab
+- **Keyboard navigation** - Navigate between items and jump between groups with Tab, with opt-in vim/emacs keys
 - **Selection stats** - See how many items are selected in each group and overall
 - **Theming support** - Customize icons and colors
 
@@ -118,6 +118,23 @@ Returns a `Promise` that resolves to an object with group keys mapping to arrays
 
 When `searchable: true`, typing alphanumeric characters filters the choices in real-time.
 
+### Alternative keybindings
+
+Vim and emacs navigation keys are opt-in through Inquirer's `INQUIRER_KEYBINDINGS` environment
+variable, which accepts `vim`, `emacs`, or both:
+
+```bash
+INQUIRER_KEYBINDINGS=vim node ./my-prompt.js
+```
+
+| Keybinding | Move up  | Move down |
+| ---------- | -------- | --------- |
+| `vim`      | `k`      | `j`       |
+| `emacs`    | `Ctrl+P` | `Ctrl+N`  |
+
+These are deliberately ignored when `searchable: true`, since their letter keys are search input
+there. Arrow keys always work regardless.
+
 Group headers are navigable and display a checkbox. Pressing `Space` on a group header toggles all non-disabled items within that group. The header shows the selection count (e.g., `(2/5)`) and its checkbox reflects whether all items in the group are selected.
 
 ## Examples
@@ -127,9 +144,7 @@ Group headers are navigable and display a checkbox. Pressing `Space` on a group 
 ```typescript
 const selected = await groupedCheckbox({
     message: 'Select at least 2 items',
-    groups: [
-        /* ... */
-    ],
+    groups: [/* ... */],
     validate: (selections) => {
         const total = Object.values(selections).flat().length
         if (total < 2) {
@@ -210,9 +225,7 @@ const selected = await groupedCheckbox({
     message: 'Select items',
     hideOverallTotal: true, // Hide the (2/6) total from the message
     hideGroupTotals: true, // Hide the (1/3) total from the group name
-    groups: [
-        /* ... */
-    ],
+    groups: [/* ... */],
 })
 ```
 
@@ -223,9 +236,7 @@ You can customize the appearance by passing a theme object:
 ```typescript
 const selected = await groupedCheckbox({
     message: 'Select items',
-    groups: [
-        /* ... */
-    ],
+    groups: [/* ... */],
     theme: {
         checkbox: {
             icon: {
