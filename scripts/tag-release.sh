@@ -8,13 +8,16 @@
 
 set -e
 
-VERSION="v$(jq -r .version package.json)"
-
 # Check for uncommitted changes
 if ! git diff --quiet HEAD; then
     echo "Error: uncommitted changes"
     exit 1
 fi
+
+git switch main
+git pull --ff-only origin main
+
+VERSION="v$(jq -r .version package.json)"
 
 # Check if tag exists locally
 if git tag -l "$VERSION" | grep -q "$VERSION"; then
@@ -30,8 +33,6 @@ fi
 
 echo "Releasing $VERSION"
 
-git switch main
-git pull origin main
 git tag "$VERSION"
 git push origin "$VERSION"
 

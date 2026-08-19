@@ -14,9 +14,6 @@ importers:
       '@inquirer/figures':
         specifier: ^2.0.8
         version: 2.0.8
-      '@inquirer/type':
-        specifier: ^4.0.7
-        version: 4.0.7(@types/node@26.2.0)
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: ^0.18.5
@@ -27,6 +24,9 @@ importers:
       '@inquirer/testing':
         specifier: ^3.3.10
         version: 3.3.10(@types/node@26.2.0)(vitest@4.1.11(@types/node@26.2.0)(vite@7.3.0(@types/node@26.2.0)(tsx@4.23.12)))
+      '@inquirer/type':
+        specifier: ^4.0.7
+        version: 4.0.7(@types/node@26.2.0)
       '@types/node':
         specifier: ^26.2.0
         version: 26.2.0
