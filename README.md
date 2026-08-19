@@ -145,7 +145,9 @@ Group headers are navigable and display a checkbox. Pressing `Space` on a group 
 ```typescript
 const selected = await groupedCheckbox({
     message: 'Select at least 2 items',
-    groups: [/* ... */],
+    groups: [
+        /* ... */
+    ],
     validate: (selections) => {
         const total = Object.values(selections).flat().length
         if (total < 2) {
@@ -226,7 +228,9 @@ const selected = await groupedCheckbox({
     message: 'Select items',
     hideOverallTotal: true, // Hide the (2/6) total from the message
     hideGroupTotals: true, // Hide the (1/3) total from the group name
-    groups: [/* ... */],
+    groups: [
+        /* ... */
+    ],
 })
 ```
 
@@ -237,7 +241,9 @@ You can customize the appearance by passing a theme object:
 ```typescript
 const selected = await groupedCheckbox({
     message: 'Select items',
-    groups: [/* ... */],
+    groups: [
+        /* ... */
+    ],
     theme: {
         checkbox: {
             icon: {
