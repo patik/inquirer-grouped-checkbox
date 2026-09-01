@@ -26,7 +26,7 @@ importers:
         version: 3.3.11(@types/node@26.2.0)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(tsx@4.23.12)))
       '@inquirer/type':
         specifier: ^4.0.7
-        version: 4.0.7(@types/node@26.2.0)
+        version: 4.1.0(@types/node@26.2.0)
       '@types/node':
         specifier: ^26.2.0
         version: 26.2.0
@@ -366,15 +366,6 @@ packages:
       jest:
         optional: true
       vitest:
-        optional: true
-
-  '@inquirer/type@4.0.7':
-    resolution: {integrity: sha512-t28inv14nMQ1PhKpsJPY+kEs/c00qzeCOS2gTNRyTjG5d6qsVA2fItxW4hkvGZ5lvanGLdtCzVIx5dwdRpN1+g==}
-    engines: {node: '>=23.5.0 || ^22.13.0 || ^20.17.0'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
         optional: true
 
   '@inquirer/type@4.1.0':
@@ -1810,10 +1801,6 @@ snapshots:
     optionalDependencies:
       '@types/node': 26.2.0
       vitest: 4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(tsx@4.23.12))
-
-  '@inquirer/type@4.0.7(@types/node@26.2.0)':
-    optionalDependencies:
-      '@types/node': 26.2.0
 
   '@inquirer/type@4.1.0(@types/node@26.2.0)':
     optionalDependencies:
