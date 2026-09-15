@@ -23,7 +23,7 @@ importers:
         version: 10.0.1(eslint@10.10.0)
       '@inquirer/testing':
         specifier: ^3.3.10
-        version: 3.3.12(@types/node@26.4.1)(vitest@4.1.11(@types/node@26.4.1)(vite@8.2.2(@types/node@26.4.1)(esbuild@0.28.2)(tsx@4.23.12)))
+        version: 3.3.13(@types/node@26.4.1)(vitest@4.1.11(@types/node@26.4.1)(vite@8.2.2(@types/node@26.4.1)(esbuild@0.28.2)(tsx@4.23.12)))
       '@inquirer/type':
         specifier: ^4.0.7
         version: 4.1.1(@types/node@26.4.1)
@@ -320,8 +320,8 @@ packages:
     resolution: {integrity: sha512-EAWgUTGQ/Umgga51dE3B2PUHbufuXarDfg86uVgoSgNHNNQnyFKcOrQLWVqYMghuSyHh8+2HUH0Js9cTC1WAdg==}
     engines: {node: '>=23.5.0 || ^22.13.0 || ^20.17.0'}
 
-  '@inquirer/testing@3.3.12':
-    resolution: {integrity: sha512-9/KjlBpTofr8gZFkr0UW+AW18q0csofXzsgyYWJJQ5MKVRKjNW7i4IwGPr0L3fwSluo/V5QH7o4XIQZHtZE8iw==}
+  '@inquirer/testing@3.3.13':
+    resolution: {integrity: sha512-B6CucnYryJq5sy6emWhtnLwoNe3pqPsl8BvPdV8/ids3BnOG5VelYaGVf36aPenVpS1bCIPo0RZ28BEAnWNcEA==}
     engines: {node: '>=23.5.0 || ^22.13.0 || ^20.17.0'}
     peerDependencies:
       '@inquirer/checkbox': '>=1.0.0'
@@ -1936,7 +1936,7 @@ snapshots:
 
   '@inquirer/figures@2.0.9': {}
 
-  '@inquirer/testing@3.3.12(@types/node@26.4.1)(vitest@4.1.11(@types/node@26.4.1)(vite@8.2.2(@types/node@26.4.1)(esbuild@0.28.2)(tsx@4.23.12)))':
+  '@inquirer/testing@3.3.13(@types/node@26.4.1)(vitest@4.1.11(@types/node@26.4.1)(vite@8.2.2(@types/node@26.4.1)(esbuild@0.28.2)(tsx@4.23.12)))':
     dependencies:
       '@inquirer/type': 4.1.1(@types/node@26.4.1)
       '@xterm/headless': 6.0.0
