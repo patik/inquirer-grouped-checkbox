@@ -22,7 +22,7 @@ jobs:
                   fetch-depth: 0 # Fetch all history for changelog generation
 
             - name: Create Release
-              uses: softprops/action-gh-release@v2
+              uses: softprops/action-gh-release@v3
               with:
                   generate_release_notes: true # Auto-generate release notes from PRs and commits
                   draft: false
